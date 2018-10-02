@@ -1,24 +1,32 @@
+use amethyst::assets::{PrefabLoader, PrefabLoaderSystem, RonFormat};
+use amethyst::core::TransformBundle;
 use amethyst::prelude::*;
-use amethyst::renderer::{DisplayConfig, DrawSprite, Pipeline, RenderBundle, Stage};
+use amethyst::renderer::{DrawShaded, PosNormTex};
+use amethyst::utils::scene::BasicScenePrefab;
+
+type GamePrefab = BasicScenePrefab<Vec<PosNormTex>>;
 
 struct GameState;
 
-impl<'a, 'b> SimpleState<'a, 'b> for GameState {}
+impl<'a, 'b> SimpleState<'a, 'b> for GameState {
+    fn on_start(&mut self, data: StateData<GameData>) {
+        let handle = data.world.exec(|loader: PrefabLoader<GamePrefab>| {
+            loader.load("prefab/scene.ron", RonFormat, (), ())
+        });
+        
+        data.world.create_entity().with(handle).build();
+    }
+}
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
 
     let path = "resources/display.ron";
-    let config = DisplayConfig::load(&path);
-
-    let pipe = Pipeline::build().with_stage(
-        Stage::with_backbuffer()
-            .clear_target([0.0, 0.0, 0.0, 1.0], 1.0)
-            .with_pass(DrawSprite::new()),
-    );
 
     let data = GameDataBuilder::new()
-        .with_bundle(RenderBundle::new(pipe, Some(config)).with_sprite_sheet_processor())?;
+        .with(PrefabLoaderSystem::<GamePrefab>::default(), "", &[])
+        .with_bundle(TransformBundle::new())?
+        .with_basic_renderer(path, DrawShaded::<PosNormTex>::new(), false)?;
 
     let mut game = Application::new("assets/", GameState, data)?;
     game.run();
