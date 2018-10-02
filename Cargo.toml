@@ -1,0 +1,8 @@
+[package]
+name = "power-towers"
+version = "0.1.0"
+authors = ["Nikola Stoyanov <ns.barzakov@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+amethyst = { git = "https://github.com/amethyst/amethyst"}
