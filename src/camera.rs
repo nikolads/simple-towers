@@ -1,8 +1,10 @@
 use amethyst::core::cgmath::{Quaternion, Rad, Vector3};
+use amethyst::core::timing::Time;
 use amethyst::core::Transform;
 use amethyst::ecs::{Join, Read, ReadStorage, System, WriteStorage};
 use amethyst::input::InputHandler;
 use amethyst::renderer::Camera;
+use std::f32::consts::PI;
 
 pub struct CameraSystem;
 
@@ -11,10 +13,11 @@ impl<'s> System<'s> for CameraSystem {
         ReadStorage<'s, Camera>,
         WriteStorage<'s, Transform>,
         Read<'s, InputHandler<String, ()>>,
+        Read<'s, Time>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (cams, mut transforms, inputs) = data;
+        let (cams, mut transforms, inputs, timer) = data;
 
         for (_, transform) in (&cams, &mut transforms).join() {
             let pos = transform.translation;
@@ -24,29 +27,29 @@ impl<'s> System<'s> for CameraSystem {
             let mut azimuth = f32::atan2(pos.x, pos.z);
 
             if let Some(horiz) = inputs.axis_value("camera_horiz") {
-                azimuth += horiz as f32 * ::std::f32::consts::PI / 60.0;
+                azimuth += horiz as f32 * PI * timer.delta_seconds();
 
                 azimuth = match azimuth {
-                    azimuth if azimuth < 0.0 => ::std::f32::consts::PI * 2.0 + azimuth,
-                    azimuth if azimuth > ::std::f32::consts::PI * 2.0 => {
-                        azimuth - ::std::f32::consts::PI * 2.0
+                    azimuth if azimuth < 0.0 => PI * 2.0 + azimuth,
+                    azimuth if azimuth > PI * 2.0 => {
+                        azimuth - PI * 2.0
                     },
                     azimuth => azimuth,
                 };
             }
 
             if let Some(vert) = inputs.axis_value("camera_vert") {
-                polar += vert as f32 * ::std::f32::consts::PI / 120.0;
+                polar += vert as f32 * PI * 0.5 * timer.delta_seconds();
 
                 polar = match polar {
                     polar if polar < 0.0 => 0.01,
-                    polar if polar > ::std::f32::consts::PI => ::std::f32::consts::PI - 0.01,
+                    polar if polar > PI => PI - 0.01,
                     polar => polar,
                 };
             }
 
             if let Some(zoom) = inputs.axis_value("camera_zoom") {
-                r += zoom as f32 * 5.0 / 60.0;
+                r += zoom as f32 * 10.0 * timer.delta_seconds();
             }
 
             transform.translation = Vector3::new(
@@ -59,14 +62,14 @@ impl<'s> System<'s> for CameraSystem {
             transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Rad(azimuth));
             transform.rotate_local(
                 Vector3::new(1.0, 0.0, 0.0),
-                Rad(polar - ::std::f32::consts::PI / 2.0),
+                Rad(polar - PI / 2.0),
             );
 
             // println!(
             //     "Camera coord: r = {}, θ = {}, φ = {}, up = {:?}",
             //     r,
-            //     polar / ::std::f32::consts::PI * 180.0,
-            //     azimuth / ::std::f32::consts::PI * 180.0,
+            //     polar / PI * 180.0,
+            //     azimuth / PI * 180.0,
             //     transform.orientation().up,
             // );
         }

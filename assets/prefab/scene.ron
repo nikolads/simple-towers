@@ -28,11 +28,11 @@ Prefab (
     ( 
       data: (
         graphics: (
-          mesh: Shape((shape: Plane((10, 10)))),
-          material: (albedo: Data(Rgba((0.0, 1.0, 0.0, 1.0), ()))),
+          mesh: Shape((shape: Plane((100, 100)))),
+          material: (albedo: Data(Rgba((0.0, 0.5, 0.0, 1.0), ()))),
         ),
         transform: (
-          scale: (x: 5.0, y: 5.0, z: 1.0),
+          scale: (x: 50.0, y: 50.0, z: 1.0),
           rotation: (s: 0.707, v: (x: -0.707, y: 0.0, z: 0.0)),
         ),
       ),
@@ -43,12 +43,16 @@ Prefab (
           translation: (x: 2.0, y: 2.0, z: 2.0),
         ),
         light: (
-          ambient_color: (Rgba(0.005, 0.005, 0.005, 1.0)),
-          light: Point((
-            intensity: 3.0,
-            color: (1.0, 1.0, 1.0, 1.0),
-            radius: 10.0,
+          ambient_color: (Rgba(0.002, 0.002, 0.002, 1.0)),
+          light: Directional((
+            color: (0.5, 0.5, 0.5, 1.0),
+            direction: (0.0, -0.71, -0.71),
           )),
+          // light: Point((
+          //   intensity: 3.0,
+          //   color: (1.0, 1.0, 1.0, 1.0),
+          //   radius: 10.0,
+          // )),
         ),
       ),
     ),

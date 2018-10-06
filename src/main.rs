@@ -25,7 +25,7 @@ impl<'a, 'b> SimpleState<'a, 'b> for GameState {
 }
 
 fn main() -> amethyst::Result<()> {
-    // amethyst::start_logger(Default::default());
+    amethyst::start_logger(Default::default());
 
     let bindings_path = "config/bindings.ron";
     let display_path = "config/display.ron";
