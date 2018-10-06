@@ -1,0 +1,8 @@
+(
+  axes: {
+    "camera_horiz": Emulated(pos: Key(D), neg: Key(A)),
+    "camera_vert": Emulated(pos: Key(S), neg: Key(W)),
+    "camera_zoom": Emulated(pos: Key(E), neg: Key(Q)),
+  },
+  actions: {},
+)

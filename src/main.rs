@@ -1,11 +1,17 @@
 use amethyst::assets::{PrefabLoader, PrefabLoaderSystem, RonFormat};
 use amethyst::core::TransformBundle;
+use amethyst::input::InputBundle;
 use amethyst::prelude::*;
 use amethyst::renderer::{DrawShaded, PosNormTex};
 use amethyst::utils::scene::BasicScenePrefab;
 
+mod camera;
+
+use self::camera::CameraSystem;
+
 type GamePrefab = BasicScenePrefab<Vec<PosNormTex>>;
 
+#[derive(Default, Debug)]
 struct GameState;
 
 impl<'a, 'b> SimpleState<'a, 'b> for GameState {
@@ -19,16 +25,22 @@ impl<'a, 'b> SimpleState<'a, 'b> for GameState {
 }
 
 fn main() -> amethyst::Result<()> {
-    amethyst::start_logger(Default::default());
+    // amethyst::start_logger(Default::default());
 
-    let path = "resources/display.ron";
+    let bindings_path = "config/bindings.ron";
+    let display_path = "config/display.ron";
+
+    let input_bundle = InputBundle::<String, ()>::new()
+        .with_bindings_from_file(bindings_path)?;
 
     let data = GameDataBuilder::new()
         .with(PrefabLoaderSystem::<GamePrefab>::default(), "", &[])
         .with_bundle(TransformBundle::new())?
-        .with_basic_renderer(path, DrawShaded::<PosNormTex>::new(), false)?;
+        .with_bundle(input_bundle)?
+        .with(CameraSystem, "camera", &["input_system"])
+        .with_basic_renderer(display_path, DrawShaded::<PosNormTex>::new(), false)?;
 
-    let mut game = Application::new("assets/", GameState, data)?;
+    let mut game = Application::new("assets/", GameState::default(), data)?;
     game.run();
 
     Ok(())

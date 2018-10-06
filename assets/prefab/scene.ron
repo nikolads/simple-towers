@@ -13,6 +13,18 @@ Prefab (
         ),
       ),
     ), 
+    (
+      data: (
+        graphics: (
+          mesh: Shape((shape: Sphere(32, 32))),
+          material: (albedo: Data(Rgba((1.0, 0.0, 0.0, 1.0), ()))),
+        ),
+        transform: (
+          scale: (x: 0.5, y: 0.5, z: 0.5),
+          translation: (x: 4.0, y: 0.5, z: 0.0),
+        ),
+      ),
+    ), 
     ( 
       data: (
         graphics: (
@@ -42,10 +54,6 @@ Prefab (
     ),
     (
       data: (
-        // transform: (
-        //   translation: (x: 0.0, y: 1.0, z: 6.0),
-        //   rotation: (s: 0.997, v: (x: -0.082, y: 0.0, z: 0.0)),
-        // ),
         transform: (
           translation: (x: 0.0, y: 10.0, z: 6.0),
           rotation: (s: 0.870, v: (x: -0.493, y: 0.0, z: 0.0)),
