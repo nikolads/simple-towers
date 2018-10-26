@@ -8,11 +8,12 @@ use std::f32::consts::PI;
 
 pub struct CameraSystem;
 
+// TODO: replace with the builtin ArcBallCamera
 impl<'s> System<'s> for CameraSystem {
     type SystemData = (
         ReadStorage<'s, Camera>,
         WriteStorage<'s, Transform>,
-        Read<'s, InputHandler<String, ()>>,
+        Read<'s, InputHandler<String, String>>,
         Read<'s, Time>,
     );
 

@@ -4,5 +4,7 @@
     "camera_vert": Emulated(pos: Key(S), neg: Key(W)),
     "camera_zoom": Emulated(pos: Key(E), neg: Key(Q)),
   },
-  actions: {},
+  actions: {
+    "spawn_enemy": [Key(O)],
+  },
 )

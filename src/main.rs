@@ -6,8 +6,12 @@ use amethyst::renderer::{DrawShaded, PosNormTex};
 use amethyst::utils::scene::BasicScenePrefab;
 
 mod camera;
+mod enemy;
+mod spawn;
 
 use self::camera::CameraSystem;
+use self::enemy::EnemySystem;
+use self::spawn::SpawnSystem;
 
 type GamePrefab = BasicScenePrefab<Vec<PosNormTex>>;
 
@@ -19,7 +23,7 @@ impl<'a, 'b> SimpleState<'a, 'b> for GameState {
         let handle = data.world.exec(|loader: PrefabLoader<GamePrefab>| {
             loader.load("prefab/scene.ron", RonFormat, (), ())
         });
-        
+
         data.world.create_entity().with(handle).build();
     }
 }
@@ -30,7 +34,7 @@ fn main() -> amethyst::Result<()> {
     let bindings_path = "config/bindings.ron";
     let display_path = "config/display.ron";
 
-    let input_bundle = InputBundle::<String, ()>::new()
+    let input_bundle = InputBundle::<String, String>::new()
         .with_bindings_from_file(bindings_path)?;
 
     let data = GameDataBuilder::new()
@@ -38,6 +42,8 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with(CameraSystem, "camera", &["input_system"])
+        .with(EnemySystem, "", &[])
+        .with(SpawnSystem::default(), "spawn", &["input_system"])
         .with_basic_renderer(display_path, DrawShaded::<PosNormTex>::new(), false)?;
 
     let mut game = Application::new("assets/", GameState::default(), data)?;
