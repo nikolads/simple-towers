@@ -45,7 +45,7 @@ impl<'s> System<'s> for EnemySystem {
             let pos_to_goal = movement.goal.cast::<f32>().unwrap() - pos;
             let dir = Vector3::new(pos_to_goal.x, 0.0, pos_to_goal.y);
 
-            transform.move_along_global(dir, movement.speed * timer.delta_seconds() * 5.0);
+            transform.move_along_global(dir, movement.speed * timer.delta_seconds() * 3.0);
         }
     }
 }

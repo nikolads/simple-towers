@@ -2,17 +2,19 @@ use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::Vector2;
 use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
-use amethyst::input::InputHandler;
+use amethyst::input::InputEvent;
 use amethyst::renderer::{
     Material, MaterialDefaults, Mesh, MeshHandle, PosNormTex, Shape, Texture,
 };
+use amethyst::shrev::EventChannel;
 
 use crate::enemy::{Enemy, MovementOrder};
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct SpawnSystem {
-    // FIXME: how to handle events in amethyst?
-    last_pressed: bool,
+    event_reader: Option<ReaderId<InputEvent<String>>>,
+    material: Option<Material>,
+    mesh: Option<MeshHandle>,
 }
 
 impl<'s> System<'s> for SpawnSystem {
@@ -22,12 +24,12 @@ impl<'s> System<'s> for SpawnSystem {
         WriteStorage<'s, Transform>,
         WriteStorage<'s, Enemy>,
         WriteStorage<'s, MovementOrder>,
-        Read<'s, InputHandler<String, String>>,
-        ReadExpect<'s, AssetStorage<Mesh>>,
-        ReadExpect<'s, AssetStorage<Texture>>,
+        Read<'s, EventChannel<InputEvent<String>>>,
+        Entities<'s>,
         ReadExpect<'s, Loader>,
         ReadExpect<'s, MaterialDefaults>,
-        Entities<'s>,
+        ReadExpect<'s, AssetStorage<Mesh>>,
+        ReadExpect<'s, AssetStorage<Texture>>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -37,33 +39,55 @@ impl<'s> System<'s> for SpawnSystem {
             mut transforms,
             mut enemies,
             mut movement_orders,
-            input,
-            mesh_assets,
-            tex_assets,
+            events,
+            entities,
             loader,
             mat_defaults,
-            entities,
+            mesh_assets,
+            texture_assets,
         ) = data;
 
-        if let Some(state) = input.action_is_down("spawn_enemy") {
-            if state == true && self.last_pressed == false {
-                let (mesh, mat) = {
-                    let shape = Shape::Sphere(32, 32).generate::<Vec<PosNormTex>>(None);
-                    let mesh = loader.load_from_data::<Mesh, _>(shape, (), &mesh_assets);
+        // Initialization logic is here and not in `setup`,
+        // because in `MaterialDefaults` is not yet initialized in `setup`
+        // and that can't be fixed with dependencies due to
+        // `RenderSystem` being a thread local system.
+        // So a custom `Dispatcher` is needed.
+        let (mesh, material) = match (&self.mesh, &self.material) {
+            (Some(mesh), Some(material)) => (mesh, material),
+            (None, None) => {
+                let mesh = loader.load_from_data::<Mesh, _>(
+                    Shape::Sphere(32, 32).generate::<Vec<PosNormTex>>(None),
+                    (),
+                    &mesh_assets,
+                );
 
-                    let albedo = loader.load_from_data([1.0, 0.0, 1.0, 0.0].into(), (), &tex_assets);
-                    let mat = Material {
-                        albedo,
-                        ..mat_defaults.0.clone()
-                    };
+                let albedo =
+                    loader.load_from_data([1.0, 0.0, 1.0, 0.0].into(), (), &texture_assets);
 
-                    (mesh, mat)
+                let material = Material {
+                    albedo,
+                    ..mat_defaults.0.clone()
                 };
 
+                (
+                    self.mesh.get_or_insert(mesh) as &_,
+                    self.material.get_or_insert(material) as &_,
+                )
+            },
+            _ => unreachable!(),
+        };
+
+        events
+            .read(self.event_reader.as_mut().unwrap())
+            .filter(|evt| match evt {
+                InputEvent::ActionPressed(s) if s == "spawn_enemy" => true,
+                _ => false,
+            })
+            .for_each(|_| {
                 entities
                     .build_entity()
-                    .with(mesh, &mut meshes)
-                    .with(mat, &mut materials)
+                    .with(mesh.clone(), &mut meshes)
+                    .with(material.clone(), &mut materials)
                     .with(Transform::default(), &mut transforms)
                     .with(Enemy, &mut enemies)
                     .with(
@@ -74,9 +98,15 @@ impl<'s> System<'s> for SpawnSystem {
                         &mut movement_orders,
                     )
                     .build();
-            }
+            });
+    }
 
-            self.last_pressed = state;
-        }
+    fn setup(&mut self, res: &mut Resources) {
+        Self::SystemData::setup(res);
+
+        self.event_reader = Some(
+            res.fetch_mut::<EventChannel<InputEvent<String>>>()
+                .register_reader(),
+        );
     }
 }
