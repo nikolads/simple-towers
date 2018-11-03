@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 amethyst = { version = "0.9.0", features = ["nightly"] }
+rand = "0.5.5"

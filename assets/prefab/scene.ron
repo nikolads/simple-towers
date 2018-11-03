@@ -25,18 +25,18 @@ Prefab (
         ),
       ),
     ),
-    (
-      data: (
-        graphics: (
-          mesh: Shape((shape: Plane((100, 100)))),
-          material: (albedo: Data(Rgba((0.0, 0.5, 0.0, 1.0), (channel: Srgb)))),
-        ),
-        transform: (
-          scale: (x: 50.0, y: 50.0, z: 1.0),
-          rotation: (s: 0.707, v: (x: -0.707, y: 0.0, z: 0.0)),
-        ),
-      ),
-    ),
+    // (
+    //   data: (
+    //     graphics: (
+    //       mesh: Shape((shape: Plane((100, 100)))),
+    //       material: (albedo: Data(Rgba((0.0, 0.5, 0.0, 1.0), (channel: Srgb)))),
+    //     ),
+    //     transform: (
+    //       scale: (x: 50.0, y: 50.0, z: 1.0),
+    //       rotation: (s: 0.707, v: (x: -0.707, y: 0.0, z: 0.0)),
+    //     ),
+    //   ),
+    // ),
     (
       data: (
         transform: (
@@ -59,7 +59,7 @@ Prefab (
     (
       data: (
         transform: (
-          translation: (x: 0.0, y: 10.0, z: 6.0),
+          translation: (x: 25.0, y: 10.0, z: 25.0),
           rotation: (s: 0.870, v: (x: -0.493, y: 0.0, z: 0.0)),
         ),
         camera: Perspective((

@@ -1,12 +1,15 @@
 use amethyst::assets::{PrefabLoader, PrefabLoaderSystem, RonFormat};
+use amethyst::core::timing::Time;
 use amethyst::core::TransformBundle;
 use amethyst::input::InputBundle;
 use amethyst::prelude::*;
 use amethyst::renderer::{DrawShaded, PosNormTex};
+use amethyst::utils::fps_counter::{FPSCounter, FPSCounterBundle};
 use amethyst::utils::scene::BasicScenePrefab;
 
 mod camera;
 mod enemy;
+mod ground;
 mod spawn;
 
 use self::camera::CameraSystem;
@@ -19,12 +22,25 @@ type GamePrefab = BasicScenePrefab<Vec<PosNormTex>>;
 struct GameState;
 
 impl<'a, 'b> SimpleState<'a, 'b> for GameState {
-    fn on_start(&mut self, data: StateData<GameData>) {
+    fn on_start(&mut self, mut data: StateData<GameData>) {
         let handle = data.world.exec(|loader: PrefabLoader<GamePrefab>| {
             loader.load("prefab/scene.ron", RonFormat, (), ())
         });
 
         data.world.create_entity().with(handle).build();
+
+        ground::spawn(&mut data.world, 30, 30);
+    }
+
+    fn fixed_update(&mut self, data: StateData<GameData>) -> Trans<GameData<'a, 'b>, StateEvent> {
+        let time = data.world.read_resource::<Time>();
+        let fps = data.world.read_resource::<FPSCounter>();
+
+        if time.frame_number() % 10 == 0 {
+            println!("fps: {}", fps.sampled_fps());
+        }
+
+        Trans::None
     }
 }
 
@@ -34,13 +50,14 @@ fn main() -> amethyst::Result<()> {
     let bindings_path = "config/bindings.ron";
     let display_path = "config/display.ron";
 
-    let input_bundle = InputBundle::<String, String>::new()
-        .with_bindings_from_file(bindings_path)?;
+    let input_bundle =
+        InputBundle::<String, String>::new().with_bindings_from_file(bindings_path)?;
 
     let data = GameDataBuilder::new()
         .with(PrefabLoaderSystem::<GamePrefab>::default(), "", &[])
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
+        .with_bundle(FPSCounterBundle::default())?
         .with(CameraSystem, "camera", &["input_system"])
         .with(EnemySystem, "", &[])
         .with(SpawnSystem::default(), "spawn", &["input_system"])

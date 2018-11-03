@@ -50,8 +50,8 @@ impl<'s> System<'s> for SpawnSystem {
         // Initialization logic is here and not in `setup`,
         // because in `MaterialDefaults` is not yet initialized in `setup`
         // and that can't be fixed with dependencies due to
-        // `RenderSystem` being a thread local system.
-        // So a custom `Dispatcher` is needed.
+        // `RenderSystem` being a thread local system (thanks OpenGL).
+        // A custom `Dispatcher` is needed.
         let (mesh, material) = match (&self.mesh, &self.material) {
             (Some(mesh), Some(material)) => (mesh, material),
             (None, None) => {
