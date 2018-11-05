@@ -48,34 +48,26 @@ impl<'s> System<'s> for SpawnSystem {
         ) = data;
 
         // Initialization logic is here and not in `setup`,
-        // because in `MaterialDefaults` is not yet initialized in `setup`
+        // because `MaterialDefaults` is not yet initialized in `setup`
         // and that can't be fixed with dependencies due to
         // `RenderSystem` being a thread local system (thanks OpenGL).
         // A custom `Dispatcher` is needed.
-        let (mesh, material) = match (&self.mesh, &self.material) {
-            (Some(mesh), Some(material)) => (mesh, material),
-            (None, None) => {
-                let mesh = loader.load_from_data::<Mesh, _>(
-                    Shape::Sphere(32, 32).generate::<Vec<PosNormTex>>(None),
-                    (),
-                    &mesh_assets,
-                );
+        let mesh = self.mesh.get_or_insert_with(|| {
+            loader.load_from_data::<Mesh, _>(
+                Shape::Sphere(32, 32).generate::<Vec<PosNormTex>>(None),
+                (),
+                &mesh_assets,
+            )
+        });
 
-                let albedo =
-                    loader.load_from_data([1.0, 0.0, 1.0, 0.0].into(), (), &texture_assets);
+        let material = self.material.get_or_insert_with(|| {
+            let albedo = loader.load_from_data([1.0, 0.0, 1.0, 0.0].into(), (), &texture_assets);
 
-                let material = Material {
-                    albedo,
-                    ..mat_defaults.0.clone()
-                };
-
-                (
-                    self.mesh.get_or_insert(mesh) as &_,
-                    self.material.get_or_insert(material) as &_,
-                )
-            },
-            _ => unreachable!(),
-        };
+            Material {
+                albedo,
+                ..mat_defaults.0.clone()
+            }
+        });
 
         events
             .read(self.event_reader.as_mut().unwrap())

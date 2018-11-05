@@ -1,76 +1,99 @@
-use amethyst::core::cgmath::{Quaternion, Rad, Vector3};
+use amethyst::assets::{PrefabData, PrefabError};
+use amethyst::core::cgmath::{ElementWise, Rad, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::Transform;
-use amethyst::ecs::{Join, Read, ReadStorage, System, WriteStorage};
+use amethyst::ecs::prelude::*;
 use amethyst::input::InputHandler;
 use amethyst::renderer::Camera;
-use std::f32::consts::PI;
+use serde_derive::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ArcBallControls {
+    pub target: Vector3<f32>,
+    pub distance: f32,
+    pub sensitivity_translate: Vector3<f32>,
+    pub sensitivity_zoom: f32,
+    pub sensitivity_pitch: f32,
+    pub sensitivity_yaw: f32,
+}
+
+impl Default for ArcBallControls {
+    fn default() -> Self {
+        Self {
+            target: Vector3::new(0.0, 0.0, 0.0),
+            distance: 1.0,
+            sensitivity_translate: Vector3::new(1.0, 1.0, 1.0),
+            sensitivity_zoom: 1.0,
+            sensitivity_pitch: 1.0,
+            sensitivity_yaw: 1.0,
+        }
+    }
+}
+
+impl Component for ArcBallControls {
+    type Storage = VecStorage<Self>;
+}
+
+impl<'s> PrefabData<'s> for ArcBallControls {
+    type SystemData = WriteStorage<'s, ArcBallControls>;
+    type Result = ();
+
+    fn add_to_entity(
+        &self,
+        entity: Entity,
+        controls: &mut Self::SystemData,
+        _: &[Entity],
+    ) -> Result<Self::Result, PrefabError> {
+        controls.insert(entity, self.clone())?;
+        Ok(())
+    }
+}
 
 pub struct CameraSystem;
 
-// TODO: replace with the builtin ArcBallCamera
 impl<'s> System<'s> for CameraSystem {
     type SystemData = (
         ReadStorage<'s, Camera>,
+        WriteStorage<'s, ArcBallControls>,
         WriteStorage<'s, Transform>,
         Read<'s, InputHandler<String, String>>,
         Read<'s, Time>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (cams, mut transforms, inputs, timer) = data;
+        let (cams, mut controls, mut transforms, inputs, timer) = data;
 
-        for (_, transform) in (&cams, &mut transforms).join() {
-            let pos = transform.translation;
-
-            let mut r = (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z).sqrt();
-            let mut polar = f32::acos(pos.y / r);
-            let mut azimuth = f32::atan2(pos.x, pos.z);
-
-            if let Some(horiz) = inputs.axis_value("camera_horiz") {
-                azimuth += horiz as f32 * PI * timer.delta_seconds();
-
-                azimuth = match azimuth {
-                    azimuth if azimuth < 0.0 => PI * 2.0 + azimuth,
-                    azimuth if azimuth > PI * 2.0 => {
-                        azimuth - PI * 2.0
-                    },
-                    azimuth => azimuth,
-                };
-            }
-
-            if let Some(vert) = inputs.axis_value("camera_vert") {
-                polar += vert as f32 * PI * 0.5 * timer.delta_seconds();
-
-                polar = match polar {
-                    polar if polar < 0.0 => 0.01,
-                    polar if polar > PI => PI - 0.01,
-                    polar => polar,
-                };
-            }
-
-            if let Some(zoom) = inputs.axis_value("camera_zoom") {
-                r += zoom as f32 * 10.0 * timer.delta_seconds();
-            }
-
-            transform.translation = Vector3::new(
-                r * f32::sin(polar) * f32::sin(azimuth),
-                r * f32::cos(polar),
-                r * f32::sin(polar) * f32::cos(azimuth),
+        for (_, arc_ball, transform) in (&cams, &mut controls, &mut transforms).join() {
+            let horiz = inputs.axis_value("camera_pitch").unwrap() as f32;
+            let vert = inputs.axis_value("camera_yaw").unwrap() as f32;
+            let zoom = inputs.axis_value("camera_zoom").unwrap() as f32;
+            let translate = Vector3::new(
+                inputs.axis_value("camera_translate_x").unwrap() as f32,
+                0.0,
+                inputs.axis_value("camera_translate_z").unwrap() as f32,
             );
+            let dt = timer.delta_seconds();
 
-            transform.rotation = Quaternion::from_sv(1.0, Vector3::new(0.0, 0.0, 0.0));
-            transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Rad(azimuth));
-            transform.rotate_local(
-                Vector3::new(1.0, 0.0, 0.0),
-                Rad(polar - PI / 2.0),
-            );
+            transform.pitch_local((Rad(1.0) * vert * arc_ball.sensitivity_pitch * dt).into());
+            transform.yaw_global((Rad(1.0) * horiz * arc_ball.sensitivity_yaw * dt).into());
+
+            arc_ball.distance += zoom * arc_ball.sensitivity_zoom * dt;
+            arc_ball.target += translate.mul_element_wise(arc_ball.sensitivity_translate) * dt;
+
+            let displacement = transform.rotation * -Vector3::unit_z() * arc_ball.distance;
+            transform.translation = arc_ball.target - displacement;
+
+            // let pos = transform.translation;
+            // let r = (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z).sqrt();
+            // let polar = f32::acos(pos.y / r);
+            // let azimuth = f32::atan2(pos.x, pos.z);
 
             // println!(
-            //     "Camera coord: r = {}, θ = {}, φ = {}, up = {:?}",
+            //     "Camera coord: r = {:.3}, θ = {:.3}, φ = {:.3}, up = {:.3?}",
             //     r,
-            //     polar / PI * 180.0,
-            //     azimuth / PI * 180.0,
+            //     polar / std::f32::consts::PI * 180.0,
+            //     azimuth / std::f32::consts::PI * 180.0,
             //     transform.orientation().up,
             // );
         }

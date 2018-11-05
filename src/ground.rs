@@ -7,7 +7,7 @@ use rand::distributions::{Weighted, WeightedChoice};
 use rand::prelude::*;
 use rand::rngs::SmallRng;
 
-pub fn spawn(world: &mut World, width: u32, height: u32) {
+pub fn generate(world: &mut World, width: u32, height: u32) {
     let mut rng = SmallRng::from_entropy();
 
     let mesh = {

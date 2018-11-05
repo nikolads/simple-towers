@@ -3,42 +3,6 @@ Prefab (
   entities: [
     (
       data: (
-        graphics: (
-          mesh: Shape((shape: Sphere(32, 32))),
-          material: (albedo: Data(Rgba((0.0, 0.0, 1.0, 1.0), (channel: Srgb)))),
-        ),
-        transform: (
-          scale: (x: 0.5, y: 0.5, z: 0.5),
-          translation: (x: 0.0, y: 0.5, z: 0.0),
-        ),
-      ),
-    ),
-    (
-      data: (
-        graphics: (
-          mesh: Shape((shape: Sphere(32, 32))),
-          material: (albedo: Data(Rgba((1.0, 0.0, 0.0, 1.0), (channel: Srgb)))),
-        ),
-        transform: (
-          scale: (x: 0.5, y: 0.5, z: 0.5),
-          translation: (x: 4.0, y: 0.5, z: 0.0),
-        ),
-      ),
-    ),
-    // (
-    //   data: (
-    //     graphics: (
-    //       mesh: Shape((shape: Plane((100, 100)))),
-    //       material: (albedo: Data(Rgba((0.0, 0.5, 0.0, 1.0), (channel: Srgb)))),
-    //     ),
-    //     transform: (
-    //       scale: (x: 50.0, y: 50.0, z: 1.0),
-    //       rotation: (s: 0.707, v: (x: -0.707, y: 0.0, z: 0.0)),
-    //     ),
-    //   ),
-    // ),
-    (
-      data: (
         transform: (
           translation: (x: 2.0, y: 2.0, z: 2.0),
         ),
@@ -48,27 +12,26 @@ Prefab (
             color: (0.5, 0.5, 0.5, 1.0),
             direction: (0.0, -0.71, -0.71),
           )),
-          // light: Point((
-          //   intensity: 3.0,
-          //   color: (1.0, 1.0, 1.0, 1.0),
-          //   radius: 10.0,
-          // )),
         ),
       ),
     ),
-    (
-      data: (
-        transform: (
-          translation: (x: 25.0, y: 10.0, z: 25.0),
-          rotation: (s: 0.870, v: (x: -0.493, y: 0.0, z: 0.0)),
-        ),
-        camera: Perspective((
-          fovy: Rad (1.0471975512),
-          aspect: 1.0,
-          near: 0.1,
-          far: 2000.0,
-        )),
-      ),
-    ),
+    // (
+    //   data: (
+    //     transform: (
+    //       translation: (x: 25.0, y: 10.0, z: 25.0),
+    //       rotation: (s: 0.870, v: (x: -0.493, y: 0.0, z: 0.0)),
+    //     ),
+    //     camera: Perspective((
+    //       fovy: Rad (1.0471975512),
+    //       aspect: 1.0,
+    //       near: 0.1,
+    //       far: 2000.0,
+    //     )),
+    //     arc_ball_controls: ArcBallControls(
+    //       target: (x: 0.0, y: 0.0, z: 0.0),
+    //       distance: 36.74,
+    //     )
+    //   ),
+    // ),
   ],
 )

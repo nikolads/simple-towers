@@ -29,14 +29,44 @@ impl<'a, 'b> SimpleState<'a, 'b> for GameState {
 
         data.world.create_entity().with(handle).build();
 
-        ground::spawn(&mut data.world, 30, 30);
+        {
+            use amethyst::core::cgmath::{PerspectiveFov, Quaternion, Rad, Vector3};
+            use amethyst::core::Transform;
+            use amethyst::renderer::{Camera, Projection};
+            use crate::camera::ArcBallControls;
+
+            data.world
+                .create_entity()
+                .with(Transform {
+                    translation: Vector3::new(0.0, 0.0, 0.0),
+                    rotation: Quaternion::new(0.870, -0.493, 0.0, 0.0),
+                    scale: Vector3::new(1.0, 1.0, 1.0),
+                })
+                .with(Camera::from(Projection::Perspective(PerspectiveFov {
+                    fovy: Rad(1.0471975512),
+                    aspect: 1.0,
+                    near: 0.1,
+                    far: 2000.0,
+                })))
+                .with(ArcBallControls {
+                    target: Vector3::new(15.0, 0.0, 15.0),
+                    distance: 20.0,
+                    sensitivity_pitch: 1.0,
+                    sensitivity_yaw: 1.0,
+                    sensitivity_zoom: 10.0,
+                    sensitivity_translate: Vector3::new(10.0, 10.0, 10.0),
+                })
+                .build();
+        }
+
+        ground::generate(&mut data.world, 30, 30);
     }
 
     fn fixed_update(&mut self, data: StateData<GameData>) -> Trans<GameData<'a, 'b>, StateEvent> {
         let time = data.world.read_resource::<Time>();
         let fps = data.world.read_resource::<FPSCounter>();
 
-        if time.frame_number() % 10 == 0 {
+        if time.frame_number() % 100 == 0 {
             println!("fps: {}", fps.sampled_fps());
         }
 
@@ -45,7 +75,15 @@ impl<'a, 'b> SimpleState<'a, 'b> for GameState {
 }
 
 fn main() -> amethyst::Result<()> {
-    amethyst::start_logger(Default::default());
+    {
+        use amethyst::{LogLevelFilter, LoggerConfig, StdoutLog};
+
+        amethyst::start_logger(LoggerConfig {
+            stdout: StdoutLog::Colored,
+            level_filter: LogLevelFilter::Warn,
+            ..LoggerConfig::default()
+        });
+    }
 
     let bindings_path = "config/bindings.ron";
     let display_path = "config/display.ron";
