@@ -29,6 +29,8 @@ impl<'s> System<'s> for EnemySystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
+        // Just to have something moving
+
         let (enemies, mut movements, mut transforms, timer) = data;
 
         for (_, movement, transform) in (&enemies, &mut movements, &mut transforms).join() {
