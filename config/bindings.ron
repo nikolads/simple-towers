@@ -5,10 +5,10 @@
     "camera_zoom":        Emulated(pos: Key(E), neg: Key(Q)),
     // rotate the camera around the up axis
     "camera_pitch":       Emulated(pos: Key(L), neg: Key(J)),
-    // rotate the up axis of the camera up or down
+    // rotate the camera up or down
     "camera_yaw":         Emulated(pos: Key(K), neg: Key(I)),
   },
   actions: {
-    "spawn_enemy": [Key(O)],
+    "spawn_enemy": [[Key(O)]],
   },
 )

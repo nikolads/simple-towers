@@ -5,18 +5,17 @@ use amethyst::input::InputBundle;
 use amethyst::prelude::*;
 use amethyst::renderer::{DrawShaded, PosNormTex};
 use amethyst::utils::fps_counter::{FPSCounter, FPSCounterBundle};
-use amethyst::utils::scene::BasicScenePrefab;
 
 mod camera;
 mod enemy;
 mod ground;
+mod prefab;
 mod spawn;
 
 use self::camera::CameraSystem;
 use self::enemy::EnemySystem;
+use self::prefab::GamePrefab;
 use self::spawn::SpawnSystem;
-
-type GamePrefab = BasicScenePrefab<Vec<PosNormTex>>;
 
 #[derive(Default, Debug)]
 struct GameState;
@@ -28,36 +27,6 @@ impl<'a, 'b> SimpleState<'a, 'b> for GameState {
         });
 
         data.world.create_entity().with(handle).build();
-
-        {
-            use amethyst::core::cgmath::{PerspectiveFov, Quaternion, Rad, Vector3};
-            use amethyst::core::Transform;
-            use amethyst::renderer::{Camera, Projection};
-            use crate::camera::ArcBallControls;
-
-            data.world
-                .create_entity()
-                .with(Transform {
-                    translation: Vector3::new(0.0, 0.0, 0.0),
-                    rotation: Quaternion::new(0.870, -0.493, 0.0, 0.0),
-                    scale: Vector3::new(1.0, 1.0, 1.0),
-                })
-                .with(Camera::from(Projection::Perspective(PerspectiveFov {
-                    fovy: Rad(1.0471975512),
-                    aspect: 1.0,
-                    near: 0.1,
-                    far: 2000.0,
-                })))
-                .with(ArcBallControls {
-                    target: Vector3::new(15.0, 0.0, 15.0),
-                    distance: 20.0,
-                    sensitivity_pitch: 1.0,
-                    sensitivity_yaw: 1.0,
-                    sensitivity_zoom: 10.0,
-                    sensitivity_translate: Vector3::new(10.0, 10.0, 10.0),
-                })
-                .build();
-        }
 
         ground::generate(&mut data.world, 30, 30);
     }

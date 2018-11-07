@@ -2,12 +2,14 @@ use amethyst::assets::{PrefabData, PrefabError};
 use amethyst::core::cgmath::{ElementWise, Rad, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::Transform;
+use amethyst::derive::PrefabData;
 use amethyst::ecs::prelude::*;
 use amethyst::input::InputHandler;
 use amethyst::renderer::Camera;
 use serde_derive::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PrefabData)]
+#[prefab(Component)]
 #[serde(default)]
 pub struct ArcBallControls {
     pub target: Vector3<f32>,
@@ -33,21 +35,6 @@ impl Default for ArcBallControls {
 
 impl Component for ArcBallControls {
     type Storage = VecStorage<Self>;
-}
-
-impl<'s> PrefabData<'s> for ArcBallControls {
-    type SystemData = WriteStorage<'s, ArcBallControls>;
-    type Result = ();
-
-    fn add_to_entity(
-        &self,
-        entity: Entity,
-        controls: &mut Self::SystemData,
-        _: &[Entity],
-    ) -> Result<Self::Result, PrefabError> {
-        controls.insert(entity, self.clone())?;
-        Ok(())
-    }
 }
 
 pub struct CameraSystem;

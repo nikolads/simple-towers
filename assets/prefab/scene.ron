@@ -15,23 +15,24 @@ Prefab (
         ),
       ),
     ),
-    // (
-    //   data: (
-    //     transform: (
-    //       translation: (x: 25.0, y: 10.0, z: 25.0),
-    //       rotation: (s: 0.870, v: (x: -0.493, y: 0.0, z: 0.0)),
-    //     ),
-    //     camera: Perspective((
-    //       fovy: Rad (1.0471975512),
-    //       aspect: 1.0,
-    //       near: 0.1,
-    //       far: 2000.0,
-    //     )),
-    //     arc_ball_controls: ArcBallControls(
-    //       target: (x: 0.0, y: 0.0, z: 0.0),
-    //       distance: 36.74,
-    //     )
-    //   ),
-    // ),
+    (
+      data: (
+        transform: (
+          rotation: (s: 0.870, v: (x: -0.493, y: 0.0, z: 0.0)),
+        ),
+        camera: Perspective((
+          fovy: Rad (1.0471975512),
+          aspect: 1.0,
+          near: 0.1,
+          far: 2000.0,
+        )),
+        arc_ball_controls: (
+          target: (x: 15.0, y: 0.0, z: 15.0),
+          distance: 20.0,
+          sensitivity_zoom: 10.0,
+          sensitivity_translate: (x: 10.0, y: 10.0, z: 10.0)
+        )
+      ),
+    ),
   ],
 )
