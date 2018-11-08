@@ -8,11 +8,12 @@ use amethyst::renderer::{
 };
 use amethyst::shrev::EventChannel;
 
+use crate::controls::Action;
 use crate::enemy::{Enemy, MovementOrder};
 
 #[derive(Default)]
 pub struct SpawnSystem {
-    event_reader: Option<ReaderId<InputEvent<String>>>,
+    event_reader: Option<ReaderId<InputEvent<Action>>>,
     material: Option<Material>,
     mesh: Option<MeshHandle>,
 }
@@ -24,7 +25,7 @@ impl<'s> System<'s> for SpawnSystem {
         WriteStorage<'s, Transform>,
         WriteStorage<'s, Enemy>,
         WriteStorage<'s, MovementOrder>,
-        Read<'s, EventChannel<InputEvent<String>>>,
+        Read<'s, EventChannel<InputEvent<Action>>>,
         Entities<'s>,
         ReadExpect<'s, Loader>,
         ReadExpect<'s, MaterialDefaults>,
@@ -97,7 +98,7 @@ impl<'s> System<'s> for SpawnSystem {
         Self::SystemData::setup(res);
 
         self.event_reader = Some(
-            res.fetch_mut::<EventChannel<InputEvent<String>>>()
+            res.fetch_mut::<EventChannel<InputEvent<Action>>>()
                 .register_reader(),
         );
     }

@@ -1,18 +1,19 @@
 use amethyst::assets::{PrefabLoader, PrefabLoaderSystem, RonFormat};
 use amethyst::core::timing::Time;
 use amethyst::core::TransformBundle;
-use amethyst::input::InputBundle;
 use amethyst::prelude::*;
 use amethyst::renderer::{DrawShaded, PosNormTex};
 use amethyst::utils::fps_counter::{FPSCounter, FPSCounterBundle};
 
-mod camera;
-mod enemy;
-mod ground;
-mod prefab;
-mod spawn;
+pub mod camera;
+pub mod controls;
+pub mod enemy;
+pub mod ground;
+pub mod prefab;
+pub mod spawn;
 
 use self::camera::CameraSystem;
+use self::controls::InputBundle;
 use self::enemy::EnemySystem;
 use self::prefab::GamePrefab;
 use self::spawn::SpawnSystem;
@@ -57,8 +58,7 @@ fn main() -> amethyst::Result<()> {
     let bindings_path = "config/bindings.ron";
     let display_path = "config/display.ron";
 
-    let input_bundle =
-        InputBundle::<String, String>::new().with_bindings_from_file(bindings_path)?;
+    let input_bundle = InputBundle::new().with_bindings_from_file(bindings_path)?;
 
     let data = GameDataBuilder::new()
         .with(PrefabLoaderSystem::<GamePrefab>::default(), "", &[])

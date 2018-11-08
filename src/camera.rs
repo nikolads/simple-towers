@@ -1,18 +1,21 @@
 use amethyst::assets::{PrefabData, PrefabError};
-use amethyst::core::cgmath::{ElementWise, Rad, Vector3};
+use amethyst::core::cgmath::{ElementWise, Quaternion, Rad, Rotation, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::Transform;
 use amethyst::derive::PrefabData;
 use amethyst::ecs::prelude::*;
-use amethyst::input::InputHandler;
 use amethyst::renderer::Camera;
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::{Serialize, Deserialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize, PrefabData)]
+use crate::controls::InputHandler;
+
+#[derive(Clone, Debug, Deserialize, PrefabData)]
 #[prefab(Component)]
 #[serde(default)]
 pub struct ArcBallControls {
+    /// The point the camera is looking at.
     pub target: Vector3<f32>,
+    /// Distance from the camera to the point it is looking at.
     pub distance: f32,
     pub sensitivity_translate: Vector3<f32>,
     pub sensitivity_zoom: f32,
@@ -37,6 +40,15 @@ impl Component for ArcBallControls {
     type Storage = VecStorage<Self>;
 }
 
+#[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+pub enum AxisControls {
+    RotateHoriz,
+    RotateVert,
+    TranslateX,
+    TranslateZ,
+    Zoom,
+}
+
 pub struct CameraSystem;
 
 impl<'s> System<'s> for CameraSystem {
@@ -44,7 +56,7 @@ impl<'s> System<'s> for CameraSystem {
         ReadStorage<'s, Camera>,
         WriteStorage<'s, ArcBallControls>,
         WriteStorage<'s, Transform>,
-        Read<'s, InputHandler<String, String>>,
+        Read<'s, InputHandler>,
         Read<'s, Time>,
     );
 
@@ -52,13 +64,13 @@ impl<'s> System<'s> for CameraSystem {
         let (cams, mut controls, mut transforms, inputs, timer) = data;
 
         for (_, arc_ball, transform) in (&cams, &mut controls, &mut transforms).join() {
-            let horiz = inputs.axis_value("camera_pitch").unwrap() as f32;
-            let vert = inputs.axis_value("camera_yaw").unwrap() as f32;
-            let zoom = inputs.axis_value("camera_zoom").unwrap() as f32;
+            let horiz = inputs.axis_value(&AxisControls::RotateHoriz.into()).unwrap() as f32;
+            let vert = inputs.axis_value(&AxisControls::RotateVert.into()).unwrap() as f32;
+            let zoom = inputs.axis_value(&AxisControls::Zoom.into()).unwrap() as f32;
             let translate = Vector3::new(
-                inputs.axis_value("camera_translate_x").unwrap() as f32,
+                inputs.axis_value(&AxisControls::TranslateX.into()).unwrap() as f32,
                 0.0,
-                inputs.axis_value("camera_translate_z").unwrap() as f32,
+                inputs.axis_value(&AxisControls::TranslateZ.into()).unwrap() as f32,
             );
             let dt = timer.delta_seconds();
 
@@ -66,10 +78,18 @@ impl<'s> System<'s> for CameraSystem {
             transform.yaw_global((Rad(1.0) * horiz * arc_ball.sensitivity_yaw * dt).into());
 
             arc_ball.distance += zoom * arc_ball.sensitivity_zoom * dt;
-            arc_ball.target += translate.mul_element_wise(arc_ball.sensitivity_translate) * dt;
 
-            let displacement = transform.rotation * -Vector3::unit_z() * arc_ball.distance;
-            transform.translation = arc_ball.target - displacement;
+            let reverse_y = Quaternion::between_vectors(
+                transform.rotation * Vector3::unit_y(),
+                Vector3::unit_y(),
+            );
+
+            arc_ball.target += (reverse_y * transform.rotation * translate)
+                .mul_element_wise(arc_ball.sensitivity_translate) *
+                dt;
+
+            let offset_from_target = transform.rotation * -Vector3::unit_z() * arc_ball.distance;
+            transform.translation = arc_ball.target - offset_from_target;
 
             // let pos = transform.translation;
             // let r = (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z).sqrt();
