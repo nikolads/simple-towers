@@ -10,6 +10,7 @@ use amethyst::shrev::EventChannel;
 
 use crate::controls::Action;
 use crate::enemy::{Enemy, MovementOrder};
+use crate::movement::{Position, Velocity};
 
 #[derive(Default)]
 pub struct SpawnSystem {
@@ -25,6 +26,8 @@ impl<'s> System<'s> for SpawnSystem {
         WriteStorage<'s, Transform>,
         WriteStorage<'s, Enemy>,
         WriteStorage<'s, MovementOrder>,
+        WriteStorage<'s, Position>,
+        WriteStorage<'s, Velocity>,
         Read<'s, EventChannel<InputEvent<Action>>>,
         Entities<'s>,
         ReadExpect<'s, Loader>,
@@ -40,6 +43,8 @@ impl<'s> System<'s> for SpawnSystem {
             mut transforms,
             mut enemies,
             mut movement_orders,
+            mut positions,
+            mut velocities,
             events,
             entities,
             loader,
@@ -82,14 +87,13 @@ impl<'s> System<'s> for SpawnSystem {
                     .with(mesh.clone(), &mut meshes)
                     .with(material.clone(), &mut materials)
                     .with(Transform::default(), &mut transforms)
-                    .with(Enemy, &mut enemies)
+                    .with(Enemy { speed: 5.0 }, &mut enemies)
                     .with(
-                        MovementOrder {
-                            speed: 2.0,
-                            goal: Vector2::new(30, 30),
-                        },
+                        MovementOrder { goal: Vector2::new(30.0, 30.0) },
                         &mut movement_orders,
                     )
+                    .with(Position(Vector2::new(0.0, 0.0)), &mut positions)
+                    .with(Velocity(Vector2::new(0.0, 0.0)), &mut velocities)
                     .build();
             });
     }

@@ -9,12 +9,14 @@ pub mod camera;
 pub mod controls;
 pub mod enemy;
 pub mod ground;
+pub mod movement;
 pub mod prefab;
 pub mod spawn;
 
 use self::camera::CameraSystem;
 use self::controls::InputBundle;
 use self::enemy::EnemySystem;
+use self::movement::MovementSystem;
 use self::prefab::GamePrefab;
 use self::spawn::SpawnSystem;
 
@@ -44,16 +46,18 @@ impl<'a, 'b> SimpleState<'a, 'b> for GameState {
     }
 }
 
-fn main() -> amethyst::Result<()> {
-    {
-        use amethyst::{LogLevelFilter, LoggerConfig, StdoutLog};
+fn start_logger() {
+    use amethyst::{LogLevelFilter, LoggerConfig, StdoutLog};
 
-        amethyst::start_logger(LoggerConfig {
-            stdout: StdoutLog::Colored,
-            level_filter: LogLevelFilter::Warn,
-            ..LoggerConfig::default()
-        });
-    }
+    amethyst::start_logger(LoggerConfig {
+        stdout: StdoutLog::Colored,
+        level_filter: LogLevelFilter::Warn,
+        ..LoggerConfig::default()
+    });
+}
+
+fn main() -> amethyst::Result<()> {
+    start_logger();
 
     let bindings_path = "config/bindings.ron";
     let display_path = "config/display.ron";
@@ -66,7 +70,8 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(input_bundle)?
         .with_bundle(FPSCounterBundle::default())?
         .with(CameraSystem, "camera", &["input_system"])
-        .with(EnemySystem, "", &[])
+        .with(MovementSystem, "movement", &[])
+        .with(EnemySystem, "enemy", &["movement"])
         .with(SpawnSystem::default(), "spawn", &["input_system"])
         .with_basic_renderer(display_path, DrawShaded::<PosNormTex>::new(), false)?;
 
