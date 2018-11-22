@@ -4,7 +4,7 @@ Prefab (
     (
       data: (
         transform: (
-          translation: (x: 2.0, y: 2.0, z: 2.0),
+          translation: (2.0, 2.0, 2.0),
         ),
         light: (
           ambient_color: (Rgba(0.002, 0.002, 0.002, 1.0)),
@@ -18,19 +18,19 @@ Prefab (
     (
       data: (
         transform: (
-          rotation: (s: 0.870, v: (x: -0.493, y: 0.0, z: 0.0)),
+          rotation: (0.870, -0.493, 0.0, 0.0),
         ),
         camera: Perspective((
-          fovy: Rad (1.0471975512),
+          fovy: 1.0471975512,
           aspect: 1.0,
-          near: 0.1,
-          far: 2000.0,
+          znear: 0.1,
+          zfar: 2000.0,
         )),
         arc_ball_controls: (
-          target: (x: 15.0, y: 0.0, z: 15.0),
+          target: [15.0, 0.0, 15.0],
           distance: 20.0,
           sensitivity_zoom: 10.0,
-          sensitivity_translate: (x: 10.0, y: 10.0, z: 10.0)
+          sensitivity_translate: [10.0, 10.0, 10.0]
         )
       ),
     ),

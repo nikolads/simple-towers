@@ -1,5 +1,5 @@
 use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::cgmath::Vector2;
+use amethyst::core::nalgebra::Vector2;
 use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
 use amethyst::input::InputEvent;

@@ -1,4 +1,4 @@
-use amethyst::core::cgmath::{InnerSpace, Vector2};
+use amethyst::core::nalgebra::Vector2;
 use amethyst::ecs::prelude::*;
 
 use crate::movement::{Position, Velocity};
@@ -36,7 +36,7 @@ impl<'s> System<'s> for EnemySystem {
 
         for (enemy, pos, order, vel) in (&enemies, &pos, &mut orders, &mut vel).join() {
             let pg = order.goal - pos.0;
-            let orientation = pg.dot(vel.0);
+            let orientation = pg.dot(vel);
 
             if orientation <= 0.0 {
                 let next_goal = if (order.goal.x > 0.0) ^ (order.goal.y > 0.0) {

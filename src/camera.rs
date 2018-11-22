@@ -1,11 +1,11 @@
 use amethyst::assets::{PrefabData, PrefabError};
-use amethyst::core::cgmath::{ElementWise, Quaternion, Rad, Rotation, Vector3};
+use amethyst::core::nalgebra::{UnitQuaternion, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::Transform;
 use amethyst::derive::PrefabData;
 use amethyst::ecs::prelude::*;
 use amethyst::renderer::Camera;
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 
 use crate::controls::InputHandler;
 
@@ -74,35 +74,25 @@ impl<'s> System<'s> for CameraSystem {
             );
             let dt = timer.delta_seconds();
 
-            transform.pitch_local((Rad(1.0) * vert * arc_ball.sensitivity_pitch * dt).into());
-            transform.yaw_global((Rad(1.0) * horiz * arc_ball.sensitivity_yaw * dt).into());
+            transform.pitch_local(vert * arc_ball.sensitivity_pitch * dt);
+            transform.yaw_global(horiz * arc_ball.sensitivity_yaw * dt);
 
             arc_ball.distance += zoom * arc_ball.sensitivity_zoom * dt;
 
-            let reverse_y = Quaternion::between_vectors(
-                transform.rotation * Vector3::unit_y(),
-                Vector3::unit_y(),
-            );
+            let reverse_y = UnitQuaternion::rotation_between(
+                &(transform.rotation() * Vector3::y_axis()),
+                &Vector3::y_axis(),
+            )
+            .unwrap();
 
-            arc_ball.target += (reverse_y * transform.rotation * translate)
-                .mul_element_wise(arc_ball.sensitivity_translate) *
+            arc_ball.target += (reverse_y * transform.rotation() * translate)
+                .component_mul(&arc_ball.sensitivity_translate) *
                 dt;
 
-            let offset_from_target = transform.rotation * -Vector3::unit_z() * arc_ball.distance;
-            transform.translation = arc_ball.target - offset_from_target;
+            let offset_from_target =
+                transform.rotation() * -Vector3::z_axis().unwrap() * arc_ball.distance;
 
-            // let pos = transform.translation;
-            // let r = (pos.x * pos.x + pos.y * pos.y + pos.z * pos.z).sqrt();
-            // let polar = f32::acos(pos.y / r);
-            // let azimuth = f32::atan2(pos.x, pos.z);
-
-            // println!(
-            //     "Camera coord: r = {:.3}, θ = {:.3}, φ = {:.3}, up = {:.3?}",
-            //     r,
-            //     polar / std::f32::consts::PI * 180.0,
-            //     azimuth / std::f32::consts::PI * 180.0,
-            //     transform.orientation().up,
-            // );
+            transform.set_position(arc_ball.target - offset_from_target);
         }
     }
 }

@@ -50,7 +50,7 @@ fn start_logger() {
     use amethyst::{LogLevelFilter, LoggerConfig, StdoutLog};
 
     amethyst::start_logger(LoggerConfig {
-        stdout: StdoutLog::Colored,
+        stdout: StdoutLog::Plain,
         level_filter: LogLevelFilter::Warn,
         ..LoggerConfig::default()
     });

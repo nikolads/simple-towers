@@ -1,4 +1,4 @@
-use amethyst::core::cgmath::{Quaternion, Vector2, Vector3};
+use amethyst::core::nalgebra::{UnitQuaternion, Vector2, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
@@ -34,9 +34,14 @@ impl<'s> System<'s> for MovementSystem {
         for (vel, pos, transform) in (&vel, &mut pos, &mut transform).join() {
             pos.0 += vel.0 * time.delta_seconds();
 
-            transform.translation = Vector3::new(pos.x, 0.0, pos.y);
-            transform.rotation =
-                Quaternion::from_arc(-Vector3::unit_z(), Vector3::new(vel.x, 0.0, vel.y), None);
+            transform.set_position(Vector3::new(pos.x, 0.0, pos.y));
+            transform.set_rotation(
+                UnitQuaternion::rotation_between(
+                    &-Vector3::z_axis(),
+                    &Vector3::new(vel.x, 0.0, vel.y),
+                )
+                .unwrap(),
+            );
         }
     }
 }

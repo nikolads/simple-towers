@@ -1,5 +1,5 @@
 use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::cgmath::{Quaternion, Vector3};
+use amethyst::core::nalgebra::{UnitQuaternion, Vector3};
 use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
 use amethyst::renderer::{Material, MaterialDefaults, Mesh, PosNormTex, Shape, Texture};
@@ -57,14 +57,16 @@ pub fn generate(world: &mut World, width: usize, height: usize) {
         for y in 0..height {
             let height = weights.sample(&mut rng);
 
-            let transform = Transform {
-                rotation: Quaternion::new(1.0, 0.0, 0.0, 0.0),
-                scale: Vector3::new(1.0, height as f32 + 2.0, 1.0),
-                translation: Vector3::new(
+            let transform = {
+                let mut t = Transform::default();
+                t.set_position(Vector3::new(
                     x as f32 + 0.5,
                     -1.0 + height as f32 * 0.5,
                     y as f32 + 0.5,
-                ),
+                ));
+                t.set_rotation(UnitQuaternion::identity());
+                t.set_scale(1.0, height as f32 + 2.0, 1.0);
+                t
             };
 
             world
