@@ -9,8 +9,8 @@ use amethyst::renderer::{
 use amethyst::shrev::EventChannel;
 
 use crate::controls::Action;
-use crate::enemy::{Enemy, MovementOrder};
-use crate::movement::{Position, Velocity};
+use crate::enemy::Enemy;
+use crate::movement::{Movement, Waypoint};
 
 #[derive(Default)]
 pub struct SpawnSystem {
@@ -25,9 +25,8 @@ impl<'s> System<'s> for SpawnSystem {
         WriteStorage<'s, Material>,
         WriteStorage<'s, Transform>,
         WriteStorage<'s, Enemy>,
-        WriteStorage<'s, MovementOrder>,
-        WriteStorage<'s, Position>,
-        WriteStorage<'s, Velocity>,
+        WriteStorage<'s, Movement>,
+        WriteStorage<'s, Waypoint>,
         Read<'s, EventChannel<InputEvent<Action>>>,
         Entities<'s>,
         ReadExpect<'s, Loader>,
@@ -42,9 +41,8 @@ impl<'s> System<'s> for SpawnSystem {
             mut materials,
             mut transforms,
             mut enemies,
-            mut movement_orders,
-            mut positions,
-            mut velocities,
+            mut moves,
+            mut waypoints,
             events,
             entities,
             loader,
@@ -89,11 +87,21 @@ impl<'s> System<'s> for SpawnSystem {
                     .with(Transform::default(), &mut transforms)
                     .with(Enemy { speed: 5.0 }, &mut enemies)
                     .with(
-                        MovementOrder { goal: Vector2::new(30.0, 30.0) },
-                        &mut movement_orders,
+                        Movement {
+                            pos: Vector2::new(15.0, 15.0),
+                            vel: Vector2::new(0.0, 0.0),
+                        },
+                        &mut moves,
                     )
-                    .with(Position(Vector2::new(0.0, 0.0)), &mut positions)
-                    .with(Velocity(Vector2::new(0.0, 0.0)), &mut velocities)
+                    .with(
+                        Waypoint::new(vec![
+                            Vector2::new(0.0, 30.0),
+                            Vector2::new(30.0, 30.0),
+                            Vector2::new(30.0, 0.0),
+                            Vector2::new(0.0, 0.0),
+                        ]),
+                        &mut waypoints,
+                    )
                     .build();
             });
     }
