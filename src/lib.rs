@@ -10,6 +10,7 @@ pub mod ground;
 pub mod movement;
 pub mod prefab;
 pub mod terrain;
+pub mod tower;
 
 use self::prefab::GamePrefab;
 

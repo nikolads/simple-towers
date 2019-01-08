@@ -1,6 +1,7 @@
 //! Strongly typed controls
 
 use serde::{Deserialize, Serialize};
+use std::fmt::{self, Debug, Display};
 
 use crate::camera;
 
@@ -18,6 +19,12 @@ pub enum Axis {
 impl From<camera::AxisControls> for Axis {
     fn from(ax: camera::AxisControls) -> Self {
         Axis::Camera(ax)
+    }
+}
+
+impl Display for Axis {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
     }
 }
 

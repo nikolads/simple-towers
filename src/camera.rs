@@ -1,9 +1,10 @@
-use amethyst::assets::{PrefabData, PrefabError};
+use amethyst::assets::PrefabData;
 use amethyst::core::nalgebra::{UnitQuaternion, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::Transform;
 use amethyst::derive::PrefabData;
 use amethyst::ecs::prelude::*;
+use amethyst::error::Error;
 use amethyst::renderer::Camera;
 use serde_derive::{Deserialize, Serialize};
 use std::f32;
@@ -65,7 +66,9 @@ impl<'s> System<'s> for CameraSystem {
         let (cams, mut controls, mut transforms, inputs, timer) = data;
 
         for (_, arc_ball, transform) in (&cams, &mut controls, &mut transforms).join() {
-            let horiz = inputs.axis_value(&AxisControls::RotateHoriz.into()).unwrap() as f32;
+            let horiz = inputs
+                .axis_value(&AxisControls::RotateHoriz.into())
+                .unwrap() as f32;
             let vert = inputs.axis_value(&AxisControls::RotateVert.into()).unwrap() as f32;
             let zoom = inputs.axis_value(&AxisControls::Zoom.into()).unwrap() as f32;
             let translate = Vector3::new(
@@ -84,14 +87,17 @@ impl<'s> System<'s> for CameraSystem {
                 &(transform.rotation() * Vector3::y_axis()),
                 &Vector3::y_axis(),
             )
-            .unwrap_or(UnitQuaternion::from_axis_angle(&Vector3::x_axis(), f32::consts::FRAC_PI_2));
+            .unwrap_or(UnitQuaternion::from_axis_angle(
+                &Vector3::x_axis(),
+                f32::consts::FRAC_PI_2,
+            ));
 
             arc_ball.target += (reverse_y * transform.rotation() * translate)
                 .component_mul(&arc_ball.sensitivity_translate) *
                 dt;
 
             let offset_from_target =
-                transform.rotation() * -Vector3::z_axis().unwrap() * arc_ball.distance;
+                transform.rotation() * -Vector3::z_axis().into_inner() * arc_ball.distance;
 
             transform.set_position(arc_ball.target - offset_from_target);
         }

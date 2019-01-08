@@ -1,7 +1,8 @@
-use amethyst::assets::{PrefabData, PrefabError, ProgressCounter};
+use amethyst::assets::{PrefabData, ProgressCounter};
 use amethyst::core::Transform;
 use amethyst::derive::PrefabData;
 use amethyst::ecs::prelude::*;
+use amethyst::error::Error;
 use amethyst::renderer::{
     CameraPrefab, GraphicsPrefab, LightPrefab, ObjFormat, PosNormTex, TextureFormat,
 };

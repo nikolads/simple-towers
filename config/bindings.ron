@@ -7,6 +7,7 @@
     Camera(RotateVert):   Emulated(pos: Key(K), neg: Key(I)),
   },
   actions: {
-    "spawn_enemy": [[Key(O)]],
+    "spawn_enemy": [[Key(N)]],
+    "build_tower": [[Key(B)]],
   },
 )
