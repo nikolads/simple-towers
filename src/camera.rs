@@ -6,6 +6,7 @@ use amethyst::derive::PrefabData;
 use amethyst::ecs::prelude::*;
 use amethyst::renderer::Camera;
 use serde_derive::{Deserialize, Serialize};
+use std::f32;
 
 use crate::controls::InputHandler;
 
@@ -83,7 +84,7 @@ impl<'s> System<'s> for CameraSystem {
                 &(transform.rotation() * Vector3::y_axis()),
                 &Vector3::y_axis(),
             )
-            .unwrap();
+            .unwrap_or(UnitQuaternion::from_axis_angle(&Vector3::x_axis(), f32::consts::FRAC_PI_2));
 
             arc_ball.target += (reverse_y * transform.rotation() * translate)
                 .component_mul(&arc_ball.sensitivity_translate) *

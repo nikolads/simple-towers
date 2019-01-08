@@ -11,14 +11,10 @@ pub struct Waypoint {
 }
 
 impl Waypoint {
-    pub fn new<I>(goals: I) -> Self
-    where
-        I: IntoIterator<Item = Vector2<f32>>,
-        I::IntoIter: DoubleEndedIterator,
-    {
+    pub fn new(goals: &[Vector2<f32>]) -> Self {
         Waypoint {
             current: None,
-            stack: goals.into_iter().rev().collect(),
+            stack: goals.into_iter().rev().cloned().collect(),
         }
     }
 

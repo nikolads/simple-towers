@@ -18,7 +18,18 @@ Prefab (
     (
       data: (
         transform: (
-          rotation: (0.870, -0.493, 0.0, 0.0),
+          translation: (15.0, 0.0, 0.0),
+        ),
+        graphics: (
+          mesh: Shape((shape: Sphere(32, 32))),
+          material: (albedo: Data(Rgba((1.0, 0.0, 0.0, 1.0), (channel: Srgb)))),
+        ),
+      ),
+    ),
+    (
+      data: (
+        transform: (
+          rotation: (0.707, -0.707, 0.0, 0.0),
         ),
         camera: Perspective((
           fovy: 1.0471975512,
@@ -27,7 +38,7 @@ Prefab (
           zfar: 2000.0,
         )),
         arc_ball_controls: (
-          target: [15.0, 0.0, 15.0],
+          target: [0.0, 0.0, 0.0],
           distance: 20.0,
           sensitivity_zoom: 10.0,
           sensitivity_translate: [10.0, 10.0, 10.0]

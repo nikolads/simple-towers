@@ -4,12 +4,13 @@ use amethyst::prelude::*;
 use amethyst::renderer::{DrawShaded, PosNormTex};
 use amethyst::utils::fps_counter::FPSCounterBundle;
 
-use simple_towers::GameState;
 use simple_towers::camera::CameraSystem;
 use simple_towers::controls::InputBundle;
+use simple_towers::GameState;
 use simple_towers::movement::{MovementSystem, WaypointSystem};
 use simple_towers::prefab::GamePrefab;
-use simple_towers::spawn::SpawnSystem;
+use simple_towers::enemy::SpawnSystem;
+use simple_towers::terrain::SelectSystem;
 
 fn start_logger() {
     use amethyst::{LogLevelFilter, LoggerConfig, StdoutLog};
@@ -37,6 +38,7 @@ fn main() -> amethyst::Result<()> {
         .with(CameraSystem, "camera", &["input_system"])
         .with(MovementSystem, "movement", &[])
         .with(WaypointSystem, "waypoint", &["movement"])
+        .with(SelectSystem::default(), "select", &[])
         .with(SpawnSystem::default(), "spawn", &["input_system"])
         .with_basic_renderer(display_path, DrawShaded::<PosNormTex>::new(), false)?;
 

@@ -47,8 +47,8 @@ pub fn generate(world: &mut World, width: usize, height: usize) {
     };
 
     let weights = &mut [
-        Weighted { weight: 10, item: 0 },
-        Weighted { weight: 4, item: 1 },
+        Weighted { weight: 6, item: 0 },
+        Weighted { weight: 3, item: 1 },
         Weighted { weight: 1, item: 2 },
     ];
     let weights = WeightedChoice::new(weights);

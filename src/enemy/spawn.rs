@@ -94,7 +94,7 @@ impl<'s> System<'s> for SpawnSystem {
                         &mut moves,
                     )
                     .with(
-                        Waypoint::new(vec![
+                        Waypoint::new(&[
                             Vector2::new(0.0, 30.0),
                             Vector2::new(30.0, 30.0),
                             Vector2::new(30.0, 0.0),

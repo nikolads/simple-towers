@@ -9,7 +9,7 @@ pub mod enemy;
 pub mod ground;
 pub mod movement;
 pub mod prefab;
-pub mod spawn;
+pub mod terrain;
 
 use self::prefab::GamePrefab;
 

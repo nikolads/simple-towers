@@ -17,7 +17,7 @@ fn waypoint_sets_movement() -> Result<(), amethyst::Error> {
                     vel: Vector2::new(0.0, 0.0),
                 })
                 .with(Enemy { speed: 1.0 })
-                .with(Waypoint::new(vec![
+                .with(Waypoint::new(&[
                     Vector2::new(10.0, 0.0),
                     Vector2::new(0.0, 10.0),
                 ]))
