@@ -6,13 +6,13 @@ use amethyst::utils::fps_counter::{FPSCounter};
 pub mod camera;
 pub mod controls;
 pub mod enemy;
-pub mod ground;
 pub mod movement;
 pub mod prefab;
 pub mod terrain;
 pub mod tower;
 
 use self::prefab::GamePrefab;
+use self::terrain::Terrain;
 
 #[derive(Default, Debug)]
 pub struct GameState;
@@ -25,7 +25,7 @@ impl SimpleState for GameState {
 
         data.world.create_entity().with(handle).build();
 
-        ground::generate(&mut data.world, 30, 30);
+        Terrain::generate(&mut data.world, 30, 30);
     }
 
     fn fixed_update(&mut self, data: StateData<GameData>) -> Trans<GameData<'static, 'static>, StateEvent> {
