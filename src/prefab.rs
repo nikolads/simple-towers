@@ -8,7 +8,7 @@ use amethyst::renderer::{
 };
 use serde::Deserialize;
 
-use crate::camera::ArcBallControls;
+use crate::components::ArcBallControls;
 
 #[derive(Default, Deserialize, PrefabData)]
 #[serde(default)]

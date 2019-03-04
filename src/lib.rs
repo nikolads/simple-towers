@@ -3,13 +3,11 @@ use amethyst::core::timing::Time;
 use amethyst::prelude::*;
 use amethyst::utils::fps_counter::{FPSCounter};
 
-pub mod camera;
+pub mod components;
 pub mod controls;
-pub mod enemy;
-pub mod movement;
 pub mod prefab;
+pub mod systems;
 pub mod terrain;
-pub mod tower;
 
 use self::prefab::GamePrefab;
 use self::terrain::Terrain;

@@ -1,55 +1,13 @@
-use amethyst::assets::PrefabData;
 use amethyst::core::nalgebra::{UnitQuaternion, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::Transform;
-use amethyst::derive::PrefabData;
 use amethyst::ecs::prelude::*;
-use amethyst::error::Error;
 use amethyst::renderer::Camera;
-use serde_derive::{Deserialize, Serialize};
 use std::f32;
 
 use crate::controls::InputHandler;
-
-#[derive(Clone, Debug, Deserialize, PrefabData)]
-#[prefab(Component)]
-#[serde(default)]
-pub struct ArcBallControls {
-    /// The point the camera is looking at.
-    pub target: Vector3<f32>,
-    /// Distance from the camera to the point it is looking at.
-    pub distance: f32,
-    pub sensitivity_translate: Vector3<f32>,
-    pub sensitivity_zoom: f32,
-    pub sensitivity_pitch: f32,
-    pub sensitivity_yaw: f32,
-}
-
-impl Default for ArcBallControls {
-    fn default() -> Self {
-        Self {
-            target: Vector3::new(0.0, 0.0, 0.0),
-            distance: 1.0,
-            sensitivity_translate: Vector3::new(1.0, 1.0, 1.0),
-            sensitivity_zoom: 1.0,
-            sensitivity_pitch: 1.0,
-            sensitivity_yaw: 1.0,
-        }
-    }
-}
-
-impl Component for ArcBallControls {
-    type Storage = VecStorage<Self>;
-}
-
-#[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
-pub enum AxisControls {
-    RotateHoriz,
-    RotateVert,
-    TranslateX,
-    TranslateZ,
-    Zoom,
-}
+use crate::controls::camera::AxisControls;
+use crate::components::ArcBallControls;
 
 pub struct CameraSystem;
 

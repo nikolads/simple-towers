@@ -4,10 +4,6 @@ use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
 use amethyst::renderer::{Material, MaterialDefaults, Mesh, PosNormTex, Shape, Texture};
 
-mod select;
-
-pub use self::select::{SelectSystem, Selection};
-
 #[derive(Debug)]
 pub struct Terrain {
     cell_entities: Vec<Entity>,

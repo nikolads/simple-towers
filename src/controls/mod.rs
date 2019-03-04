@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Debug, Display};
 
-use crate::camera;
+pub mod camera;
 
 /// Alias for an amethyst input bundle with controls from this module.
 pub type InputBundle = amethyst::input::InputBundle<Axis, Action>;

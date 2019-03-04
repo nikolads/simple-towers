@@ -1,5 +1,5 @@
 use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::nalgebra::{Point3, Vector2, Vector3, UnitQuaternion};
+use amethyst::core::nalgebra::{Point3, Vector2, Vector3};
 use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
 use amethyst::renderer::{
@@ -7,38 +7,18 @@ use amethyst::renderer::{
     WindowEvent,
 };
 use amethyst::shrev::EventChannel;
-use derive_deref::{Deref, DerefMut};
 
-use super::Terrain;
-
-#[derive(Deref, DerefMut)]
-pub struct Selection(pub Vector2<i32>);
-
-impl Selection {
-    pub fn transform(&self) -> Transform {
-        Transform::new(
-            self.position().into(),
-            UnitQuaternion::identity(),
-            Vector3::new(1.0, 1.0, 1.0))
-    }
-
-    pub fn position(&self) -> Vector3<f32> {
-        Terrain::cell_center(self.0)
-    }
-}
-
-impl Component for Selection {
-    type Storage = VecStorage<Self>;
-}
+use crate::components::Selection;
+use crate::terrain::Terrain;
 
 #[derive(Default)]
-pub struct SelectSystem {
+pub struct SelectionSystem {
     event_reader: Option<ReaderId<Event>>,
     material: Option<Material>,
     mesh: Option<MeshHandle>,
 }
 
-impl<'s> System<'s> for SelectSystem {
+impl<'s> System<'s> for SelectionSystem {
     type SystemData = (
         ReadStorage<'s, Camera>,
         WriteStorage<'s, Selection>,

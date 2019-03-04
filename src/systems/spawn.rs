@@ -1,5 +1,5 @@
 use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::nalgebra::Vector3;
+use amethyst::core::nalgebra::Vector2;
 use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
 use amethyst::input::InputEvent;
@@ -8,22 +8,25 @@ use amethyst::renderer::{
 };
 use amethyst::shrev::EventChannel;
 
+use crate::components::{Enemy, Pos, Vel, Waypoints};
 use crate::controls::Action;
-use crate::terrain::Selection;
 
 #[derive(Default)]
-pub struct BuildSystem {
+pub struct SpawnSystem {
     event_reader: Option<ReaderId<InputEvent<Action>>>,
     material: Option<Material>,
     mesh: Option<MeshHandle>,
 }
 
-impl<'s> System<'s> for BuildSystem {
+impl<'s> System<'s> for SpawnSystem {
     type SystemData = (
-        ReadStorage<'s, Selection>,
         WriteStorage<'s, MeshHandle>,
         WriteStorage<'s, Material>,
         WriteStorage<'s, Transform>,
+        WriteStorage<'s, Enemy>,
+        WriteStorage<'s, Pos>,
+        WriteStorage<'s, Vel>,
+        WriteStorage<'s, Waypoints>,
         Read<'s, EventChannel<InputEvent<Action>>>,
         Entities<'s>,
         ReadExpect<'s, Loader>,
@@ -34,10 +37,13 @@ impl<'s> System<'s> for BuildSystem {
 
     fn run(&mut self, data: Self::SystemData) {
         let (
-            selection,
             mut meshes,
             mut materials,
             mut transforms,
+            mut enemies,
+            mut positions,
+            mut velocities,
+            mut waypoints,
             events,
             entities,
             loader,
@@ -46,16 +52,21 @@ impl<'s> System<'s> for BuildSystem {
             texture_assets,
         ) = data;
 
+        // Initialization logic is here and not in `setup`,
+        // because `MaterialDefaults` is not yet initialized in `setup`
+        // and that can't be fixed with dependencies due to
+        // `RenderSystem` being a thread local system (thanks OpenGL).
+        // A custom `Dispatcher` is needed.
         let mesh = self.mesh.get_or_insert_with(|| {
             loader.load_from_data::<Mesh, _>(
-                Shape::Cylinder(32, None).generate::<Vec<PosNormTex>>(Some((0.5, 0.5, 1.0))),
+                Shape::Sphere(32, 32).generate::<Vec<PosNormTex>>(None),
                 (),
                 &mesh_assets,
             )
         });
 
         let material = self.material.get_or_insert_with(|| {
-            let albedo = loader.load_from_data([0.0, 0.0, 1.0, 0.0].into(), (), &texture_assets);
+            let albedo = loader.load_from_data([1.0, 0.0, 1.0, 0.0].into(), (), &texture_assets);
 
             Material {
                 albedo,
@@ -66,22 +77,30 @@ impl<'s> System<'s> for BuildSystem {
         events
             .read(self.event_reader.as_mut().unwrap())
             .filter(|evt| match evt {
-                InputEvent::ActionPressed(s) if s == "build_tower" => true,
+                InputEvent::ActionPressed(s) if s == "spawn_enemy" => true,
                 _ => false,
             })
             .for_each(|_| {
-                if let Some(sel) = selection.join().next() {
-                    let mut transform = sel.transform();
-                    transform.rotate_global(Vector3::x_axis(), std::f32::consts::FRAC_PI_2);
-                    transform.set_y(1.0);
-
-                    entities
-                        .build_entity()
-                        .with(mesh.clone(), &mut meshes)
-                        .with(material.clone(), &mut materials)
-                        .with(transform, &mut transforms)
-                        .build();
-                }
+                entities
+                    .build_entity()
+                    .with(mesh.clone(), &mut meshes)
+                    .with(material.clone(), &mut materials)
+                    .with(Transform::default(), &mut transforms)
+                    .with(Enemy { speed: 5.0 }, &mut enemies)
+                    .with(Pos(Vector2::new(15.0, 15.0)), &mut positions)
+                    .with(Vel(Vector2::new(0.0, 0.0)), &mut velocities)
+                    .with(
+                        Waypoints {
+                            goals: vec![
+                                Vector2::new(0, 30),
+                                Vector2::new(30, 30),
+                                Vector2::new(30, 0),
+                                Vector2::new(0, 0),
+                            ],
+                        },
+                        &mut waypoints,
+                    )
+                    .build();
             });
     }
 
