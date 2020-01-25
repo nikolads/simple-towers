@@ -1,13 +1,14 @@
-use amethyst::core::nalgebra::{UnitQuaternion, Vector3};
+use amethyst::core::math::{UnitQuaternion, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
+use amethyst::input::InputHandler;
 use amethyst::renderer::Camera;
 use std::f32;
 
-use crate::controls::InputHandler;
-use crate::controls::camera::AxisControls;
 use crate::components::ArcBallControls;
+use crate::controls::camera::AxisControls;
+use crate::controls::Bindings;
 
 pub struct CameraSystem;
 
@@ -16,7 +17,7 @@ impl<'s> System<'s> for CameraSystem {
         ReadStorage<'s, Camera>,
         WriteStorage<'s, ArcBallControls>,
         WriteStorage<'s, Transform>,
-        Read<'s, InputHandler>,
+        Read<'s, InputHandler<Bindings>>,
         Read<'s, Time>,
     );
 
@@ -36,8 +37,8 @@ impl<'s> System<'s> for CameraSystem {
             );
             let dt = timer.delta_seconds();
 
-            transform.pitch_local(vert * arc_ball.sensitivity_pitch * dt);
-            transform.yaw_global(horiz * arc_ball.sensitivity_yaw * dt);
+            transform.append_rotation_x_axis(vert * arc_ball.sensitivity_pitch * dt);
+            transform.prepend_rotation_z_axis(horiz * arc_ball.sensitivity_yaw * dt);
 
             arc_ball.distance += zoom * arc_ball.sensitivity_zoom * dt;
 
@@ -51,13 +52,13 @@ impl<'s> System<'s> for CameraSystem {
             ));
 
             arc_ball.target += (reverse_y * transform.rotation() * translate)
-                .component_mul(&arc_ball.sensitivity_translate) *
-                dt;
+                .component_mul(&arc_ball.sensitivity_translate)
+                * dt;
 
             let offset_from_target =
                 transform.rotation() * -Vector3::z_axis().into_inner() * arc_ball.distance;
 
-            transform.set_position(arc_ball.target - offset_from_target);
+            *transform.translation_mut() = arc_ball.target - offset_from_target;
         }
     }
 }

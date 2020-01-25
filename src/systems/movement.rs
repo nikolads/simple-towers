@@ -1,4 +1,4 @@
-use amethyst::core::nalgebra::{UnitQuaternion, Vector2, Vector3};
+use amethyst::core::math::{UnitQuaternion, Vector2, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
@@ -25,7 +25,7 @@ impl<'a> System<'a> for MovementSystem {
             pos.0 += vel.0 * time.delta_seconds();
 
             let pos_3d = Vector3::new(pos.x, 0.0, pos.y);
-            transform.set_position(pos_3d);
+            *transform.translation_mut() = pos_3d;
 
             if pos_3d.norm_squared() > 0.0 {
                 transform.set_rotation(UnitQuaternion::look_at_rh(&pos_3d, &Vector3::y()));

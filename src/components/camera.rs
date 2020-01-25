@@ -1,5 +1,5 @@
 use amethyst::assets::PrefabData;
-use amethyst::core::nalgebra::Vector3;
+use amethyst::core::math::Vector3;
 use amethyst::derive::PrefabData;
 use amethyst::ecs::prelude::*;
 use amethyst::error::Error;

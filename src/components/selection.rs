@@ -1,4 +1,4 @@
-use amethyst::core::nalgebra::{UnitQuaternion, Vector2, Vector3};
+use amethyst::core::math::{UnitQuaternion, Vector2, Vector3};
 use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
 use derive_deref::{Deref, DerefMut};

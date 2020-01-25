@@ -1,8 +1,13 @@
 use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::nalgebra::{Vector2, Vector3};
+use amethyst::core::math::{Vector2, Vector3};
 use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
-use amethyst::renderer::{Material, MaterialDefaults, Mesh, PosNormTex, Shape, Texture};
+use amethyst::renderer::palette::rgb::Srgba;
+use amethyst::renderer::rendy::texture::pixel::{self, Pixel};
+use amethyst::renderer::rendy::texture::TextureBuilder;
+use amethyst::renderer::rendy::util::types::vertex::PosNormTex;
+use amethyst::renderer::shape::Shape;
+use amethyst::renderer::{Material, MaterialDefaults, Mesh, Texture};
 
 #[derive(Debug)]
 pub struct Terrain {
@@ -32,7 +37,9 @@ impl Terrain {
 
             let mesh_assets = world.read_resource::<AssetStorage<Mesh>>();
             let mesh = loader.load_from_data::<Mesh, _>(
-                Shape::Plane(None).generate::<Vec<PosNormTex>>(Some((0.5, 0.5, 1.0))),
+                Shape::Plane(None)
+                    .generate::<Vec<PosNormTex>>(Some((0.5, 0.5, 1.0)))
+                    .into(),
                 (),
                 &mesh_assets,
             );
@@ -43,15 +50,28 @@ impl Terrain {
         let material = {
             let loader = world.read_resource::<Loader>();
 
+            let material_assets = world.read_resource::<AssetStorage<Material>>();
             let texture_assets = world.read_resource::<AssetStorage<Texture>>();
-            let albedo = loader.load_from_data([0.4, 0.6, 0.0, 0.0].into(), (), &texture_assets);
+            let albedo = loader.load_from_data(
+                TextureBuilder::new()
+                    .with_data(vec![Pixel::<_, _, pixel::Srgb>::from(Srgba::new(
+                        0.4, 0.6, 0.0, 0.0,
+                    ))])
+                    .into(),
+                (),
+                &texture_assets,
+            );
 
             let mat_defaults = world.read_resource::<MaterialDefaults>();
 
-            Material {
-                albedo,
-                ..mat_defaults.0.clone()
-            }
+            loader.load_from_data::<Material, _>(
+                Material {
+                    albedo,
+                    ..mat_defaults.0.clone()
+                },
+                (),
+                &material_assets,
+            )
         };
 
         (0..width)
@@ -59,8 +79,8 @@ impl Terrain {
             .map(|(x, y)| {
                 let transform = {
                     let mut t = Transform::default();
-                    t.set_position(Vector3::new(x as f32 + 0.5, 0.0, y as f32 + 0.5));
-                    t.rotate_global(-Vector3::x_axis(), std::f32::consts::FRAC_PI_2);
+                    *t.translation_mut() = Vector3::new(x as f32 + 0.5, 0.0, y as f32 + 0.5);
+                    t.prepend_rotation_x_axis(-std::f32::consts::FRAC_PI_2);
                     t
                 };
 
@@ -82,7 +102,7 @@ impl Terrain {
 
             let mesh_assets = world.read_resource::<AssetStorage<Mesh>>();
             let mesh = loader.load_from_data::<Mesh, _>(
-                Shape::Plane(None).generate::<Vec<PosNormTex>>(None),
+                Shape::Plane(None).generate::<Vec<PosNormTex>>(None).into(),
                 (),
                 &mesh_assets,
             );
@@ -93,26 +113,38 @@ impl Terrain {
         let material = {
             let loader = world.read_resource::<Loader>();
 
+            let material_assets = world.read_resource::<AssetStorage<Material>>();
             let texture_assets = world.read_resource::<AssetStorage<Texture>>();
-            let albedo = loader.load_from_data([1.0, 0.0, 0.0, 0.0].into(), (), &texture_assets);
+            let albedo = loader.load_from_data(
+                TextureBuilder::new()
+                    .with_data(vec![Pixel::<_, _, pixel::Srgb>::from(Srgba::new(
+                        1.0, 0.0, 0.0, 0.0,
+                    ))])
+                    .into(),
+                (),
+                &texture_assets,
+            );
 
             let mat_defaults = world.read_resource::<MaterialDefaults>();
 
-            Material {
-                albedo,
-                ..mat_defaults.0.clone()
-            }
+            loader.load_from_data::<Material, _>(
+                Material {
+                    albedo,
+                    ..mat_defaults.0.clone()
+                },
+                (),
+                &material_assets,
+            )
         };
-
 
         let mut grid = Vec::new();
 
         grid.extend((0..width - 1).map(|x| {
             let transform = {
                 let mut t = Transform::default();
-                t.set_scale(0.1, height as f32 * 0.5, 1.0);
-                t.set_position(Vector3::new(x as f32 + 1.0, 0.01, height as f32 * 0.5));
-                t.rotate_global(-Vector3::x_axis(), std::f32::consts::FRAC_PI_2);
+                t.set_scale(Vector3::new(0.1, height as f32 * 0.5, 1.0));
+                *t.translation_mut() = Vector3::new(x as f32 + 1.0, 0.01, height as f32 * 0.5);
+                t.prepend_rotation_x_axis(-std::f32::consts::FRAC_PI_2);
                 t
             };
 
@@ -127,9 +159,9 @@ impl Terrain {
         grid.extend((0..height - 1).map(|y| {
             let transform = {
                 let mut t = Transform::default();
-                t.set_scale(width as f32 * 0.5, 0.1, 1.0);
-                t.set_position(Vector3::new(width as f32 * 0.5, 0.01, y as f32 + 1.0));
-                t.rotate_global(-Vector3::x_axis(), std::f32::consts::FRAC_PI_2);
+                t.set_scale(Vector3::new(width as f32 * 0.5, 0.1, 1.0));
+                *t.translation_mut() = Vector3::new(width as f32 * 0.5, 0.01, y as f32 + 1.0);
+                t.prepend_rotation_x_axis(-std::f32::consts::FRAC_PI_2);
                 t
             };
 

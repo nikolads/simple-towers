@@ -1,11 +1,14 @@
-use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::nalgebra::{Point3, Vector2, Vector3};
+use amethyst::assets::{AssetStorage, Handle, Loader};
+use amethyst::core::math::{Point3, Vector2, Vector3};
 use amethyst::core::Transform;
 use amethyst::ecs::prelude::*;
-use amethyst::renderer::{
-    Camera, Event, Material, MaterialDefaults, Mesh, MeshHandle, PosNormTex, Shape, Texture,
-    WindowEvent,
-};
+use amethyst::renderer::palette::rgb::Srgba;
+use amethyst::renderer::rendy::texture::pixel::{self, Pixel};
+use amethyst::renderer::rendy::texture::TextureBuilder;
+use amethyst::renderer::rendy::util::types::vertex::PosNormTex;
+use amethyst::renderer::rendy::wsi::winit::{Event, WindowEvent};
+use amethyst::renderer::shape::Shape;
+use amethyst::renderer::{Camera, Material, MaterialDefaults, Mesh, Texture};
 use amethyst::shrev::EventChannel;
 
 use crate::components::Selection;
@@ -14,8 +17,8 @@ use crate::terrain::Terrain;
 #[derive(Default)]
 pub struct SelectionSystem {
     event_reader: Option<ReaderId<Event>>,
-    material: Option<Material>,
-    mesh: Option<MeshHandle>,
+    material: Option<Handle<Material>>,
+    mesh: Option<Handle<Mesh>>,
 }
 
 impl<'s> System<'s> for SelectionSystem {
@@ -23,12 +26,13 @@ impl<'s> System<'s> for SelectionSystem {
         ReadStorage<'s, Camera>,
         WriteStorage<'s, Selection>,
         WriteStorage<'s, Transform>,
-        WriteStorage<'s, MeshHandle>,
-        WriteStorage<'s, Material>,
+        WriteStorage<'s, Handle<Material>>,
+        WriteStorage<'s, Handle<Mesh>>,
         Read<'s, EventChannel<Event>>,
         Entities<'s>,
         ReadExpect<'s, Loader>,
         ReadExpect<'s, MaterialDefaults>,
+        ReadExpect<'s, AssetStorage<Material>>,
         ReadExpect<'s, AssetStorage<Mesh>>,
         ReadExpect<'s, AssetStorage<Texture>>,
     );
@@ -38,12 +42,13 @@ impl<'s> System<'s> for SelectionSystem {
             cams,
             mut selections,
             mut transforms,
-            mut meshes,
             mut materials,
+            mut meshes,
             events,
             entities,
             loader,
             mat_defaults,
+            material_assets,
             mesh_assets,
             texture_assets,
         ) = data;
@@ -83,7 +88,8 @@ impl<'s> System<'s> for SelectionSystem {
                                     let mesh = self.mesh.get_or_insert_with(|| {
                                         loader.load_from_data::<Mesh, _>(
                                             Shape::Cube
-                                                .generate::<Vec<PosNormTex>>(Some((0.4, 0.1, 0.4))),
+                                                .generate::<Vec<PosNormTex>>(Some((0.4, 0.1, 0.4)))
+                                                .into(),
                                             (),
                                             &mesh_assets,
                                         )
@@ -91,15 +97,23 @@ impl<'s> System<'s> for SelectionSystem {
 
                                     let material = self.material.get_or_insert_with(|| {
                                         let albedo = loader.load_from_data(
-                                            [1.0, 0.5, 0.0, 0.0].into(),
+                                            TextureBuilder::new()
+                                                .with_data(vec![Pixel::<_, _, pixel::Srgb>::from(Srgba::new(
+                                                    1.0, 0.5, 0.0, 0.0,
+                                                ))])
+                                                .into(),
                                             (),
                                             &texture_assets,
                                         );
 
-                                        Material {
-                                            albedo,
-                                            ..mat_defaults.0.clone()
-                                        }
+                                        loader.load_from_data::<Material, _>(
+                                            Material {
+                                                albedo,
+                                                ..mat_defaults.0.clone()
+                                            },
+                                            (),
+                                            &material_assets,
+                                        )
                                     });
 
                                     let ent = entities
@@ -117,16 +131,16 @@ impl<'s> System<'s> for SelectionSystem {
                                 },
                             };
 
-                        entity_transform.set_position(sel.position());
+                        *entity_transform.translation_mut() = sel.position();
                         *entity_selection = sel;
                     }
-                },
+                }
                 _ => (),
             }
         }
     }
 
-    fn setup(&mut self, res: &mut Resources) {
+    fn setup(&mut self, res: &mut World) {
         Self::SystemData::setup(res);
         self.event_reader = Some(res.fetch_mut::<EventChannel<Event>>().register_reader());
     }
@@ -144,7 +158,7 @@ fn screen_to_world(mouse: (f64, f64), cam: &Camera, transf: &Transform) -> Vecto
     )
     .to_homogeneous();
 
-    v = cam.proj.try_inverse().unwrap() * v;
+    v = cam.as_inverse_matrix() * v;
     v = v / v.w;
     v = transf.matrix() * v;
 

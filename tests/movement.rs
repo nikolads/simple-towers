@@ -1,5 +1,5 @@
 use amethyst;
-use amethyst::core::nalgebra::Vector2;
+use amethyst::core::math::Vector2;
 use amethyst::ecs::prelude::*;
 use amethyst_test::AmethystApplication;
 use simple_towers::components::{MoveOrder, Pos, Vel};

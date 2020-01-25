@@ -1,15 +1,17 @@
 //! Strongly typed controls
 
+use amethyst::input::BindingTypes;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Debug, Display};
 
 pub mod camera;
 
-/// Alias for an amethyst input bundle with controls from this module.
-pub type InputBundle = amethyst::input::InputBundle<Axis, Action>;
-
-/// Alias for an amehyst input handler with controls from this module.
-pub type InputHandler = amethyst::input::InputHandler<Axis, Action>;
+#[derive(Debug)]
+pub struct Bindings;
+impl BindingTypes for Bindings {
+    type Axis = Axis;
+    type Action = Action;
+}
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Axis {

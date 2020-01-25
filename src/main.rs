@@ -1,10 +1,13 @@
-use amethyst::assets::PrefabLoaderSystem;
+use amethyst::assets::PrefabLoaderSystemDesc;
 use amethyst::core::TransformBundle;
+use amethyst::input::InputBundle;
 use amethyst::prelude::*;
-use amethyst::renderer::{DrawShaded, PosNormTex};
-use amethyst::utils::fps_counter::FPSCounterBundle;
+use amethyst::renderer::bundle::RenderingBundle;
+use amethyst::renderer::plugins::{RenderShaded3D, RenderToWindow};
+use amethyst::renderer::types::DefaultBackend;
+use amethyst::utils::fps_counter::FpsCounterBundle;
 
-use simple_towers::controls::InputBundle;
+use simple_towers::controls::Bindings;
 use simple_towers::prefab::GamePrefab;
 use simple_towers::systems::{
     BuildSystem, CameraSystem, MovementSystem, SelectionSystem, SpawnSystem, WaypointSystem,
@@ -27,20 +30,24 @@ fn main() -> amethyst::Result<()> {
     let bindings_path = "config/bindings.ron";
     let display_path = "config/display.ron";
 
-    let input_bundle = InputBundle::new().with_bindings_from_file(bindings_path)?;
+    let input_bundle = InputBundle::<Bindings>::new().with_bindings_from_file(bindings_path)?;
 
     let data = GameDataBuilder::new()
-        .with(PrefabLoaderSystem::<GamePrefab>::default(), "", &[])
+        .with_system_desc(PrefabLoaderSystemDesc::<GamePrefab>::default(), "", &[])
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
-        .with_bundle(FPSCounterBundle::default())?
+        .with_bundle(FpsCounterBundle::default())?
         .with(CameraSystem, "camera", &["input_system"])
         .with(MovementSystem, "movement", &[])
         .with(WaypointSystem, "waypoint", &[])
         .with(SelectionSystem::default(), "selection", &[])
         .with(SpawnSystem::default(), "spawn", &["input_system"])
         .with(BuildSystem::default(), "build", &["input_system"])
-        .with_basic_renderer(display_path, DrawShaded::<PosNormTex>::new(), false)?;
+        .with_bundle(
+            RenderingBundle::<DefaultBackend>::new()
+                .with_plugin(RenderToWindow::from_config_path(display_path))
+                .with_plugin(RenderShaded3D::default()),
+        )?;
 
     let mut game = Application::new("assets/", GameState::default(), data)?;
     game.run();
