@@ -1,27 +1,10 @@
-use amethyst::core::math::{UnitQuaternion, Vector2, Vector3};
-use amethyst::core::Transform;
-use amethyst::ecs::prelude::*;
+use amethyst_core::math::Vector2;
 use derive_deref::{Deref, DerefMut};
+use specs::{Component, VecStorage};
 
-use crate::terrain::Terrain;
-
-#[derive(Clone, Debug, Deref, DerefMut)]
+#[derive(Clone, Debug, Deref, DerefMut, Component)]
+#[storage(VecStorage)]
 pub struct Selection(pub Vector2<i32>);
 
-impl Selection {
-    pub fn transform(&self) -> Transform {
-        Transform::new(
-            self.position().into(),
-            UnitQuaternion::identity(),
-            Vector3::new(1.0, 1.0, 1.0),
-        )
-    }
-
-    pub fn position(&self) -> Vector3<f32> {
-        Terrain::cell_center(self.0)
-    }
-}
-
-impl Component for Selection {
-    type Storage = VecStorage<Self>;
-}
+#[derive(Clone, Debug, Deref, DerefMut)]
+pub struct MousePos(pub Option<Vector2<i32>>);

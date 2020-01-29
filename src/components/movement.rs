@@ -1,5 +1,5 @@
-use amethyst::core::math::Vector2;
-use amethyst::ecs::prelude::*;
+use amethyst_core::math::Vector2;
+use specs::prelude::*;
 use derive_deref::{Deref, DerefMut};
 
 /// Position component.

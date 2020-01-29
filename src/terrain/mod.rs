@@ -1,178 +1,35 @@
-use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::math::{Vector2, Vector3};
-use amethyst::core::Transform;
-use amethyst::ecs::prelude::*;
-use amethyst::renderer::palette::rgb::Srgba;
-use amethyst::renderer::rendy::texture::pixel::{self, Pixel};
-use amethyst::renderer::rendy::texture::TextureBuilder;
-use amethyst::renderer::rendy::util::types::vertex::PosNormTex;
-use amethyst::renderer::shape::Shape;
-use amethyst::renderer::{Material, MaterialDefaults, Mesh, Texture};
-
 #[derive(Debug)]
-pub struct Terrain {
-    cell_entities: Vec<Entity>,
-    grid_entities: Vec<Entity>,
+pub struct Map {
+    pub width: usize,
+    pub height: usize,
+    pub tiles: Vec<Tile>,
 }
 
-impl Terrain {
-    pub fn generate(world: &mut World, width: usize, height: usize) -> Self {
+impl Map {
+    pub fn grass(width: usize, height: usize) -> Self {
         Self {
-            cell_entities: Self::generate_cells(world, width, height),
-            grid_entities: Self::generate_grid(world, width, height),
+            width,
+            height,
+            tiles: vec![Tile::Grass; width * height],
         }
     }
 
-    pub fn coord_to_cell(coord: Vector3<f32>) -> Option<Vector2<i32>> {
-        Some(Vector2::new((coord.x + 0.5) as i32, (coord.z + 0.5) as i32))
+    #[inline]
+    fn index_to_coord(&self, index: usize) -> [usize; 2] {
+        assert!(index < self.width * self.height);
+
+        [index % self.width, index / self.width]
     }
 
-    pub fn cell_center(cell: Vector2<i32>) -> Vector3<f32> {
-        Vector3::new(cell.x as f32 + 0.5, 0.0, cell.y as f32 + 0.5)
+    pub fn tiles<'a>(&'a self) -> impl Iterator<Item = (Tile, [usize; 2])> + 'a {
+        self.tiles
+            .iter()
+            .enumerate()
+            .map(move |(index, &tile)| (tile, self.index_to_coord(index)))
     }
+}
 
-    fn generate_cells(world: &mut World, width: usize, height: usize) -> Vec<Entity> {
-        let mesh = {
-            let loader = world.read_resource::<Loader>();
-
-            let mesh_assets = world.read_resource::<AssetStorage<Mesh>>();
-            let mesh = loader.load_from_data::<Mesh, _>(
-                Shape::Plane(None)
-                    .generate::<Vec<PosNormTex>>(Some((0.5, 0.5, 1.0)))
-                    .into(),
-                (),
-                &mesh_assets,
-            );
-
-            mesh
-        };
-
-        let material = {
-            let loader = world.read_resource::<Loader>();
-
-            let material_assets = world.read_resource::<AssetStorage<Material>>();
-            let texture_assets = world.read_resource::<AssetStorage<Texture>>();
-            let albedo = loader.load_from_data(
-                TextureBuilder::new()
-                    .with_data(vec![Pixel::<_, _, pixel::Srgb>::from(Srgba::new(
-                        0.4, 0.6, 0.0, 0.0,
-                    ))])
-                    .into(),
-                (),
-                &texture_assets,
-            );
-
-            let mat_defaults = world.read_resource::<MaterialDefaults>();
-
-            loader.load_from_data::<Material, _>(
-                Material {
-                    albedo,
-                    ..mat_defaults.0.clone()
-                },
-                (),
-                &material_assets,
-            )
-        };
-
-        (0..width)
-            .flat_map(|x| (0..height).map(move |y| (x, y)))
-            .map(|(x, y)| {
-                let transform = {
-                    let mut t = Transform::default();
-                    *t.translation_mut() = Vector3::new(x as f32 + 0.5, 0.0, y as f32 + 0.5);
-                    t.prepend_rotation_x_axis(-std::f32::consts::FRAC_PI_2);
-                    t
-                };
-
-                world
-                    .create_entity()
-                    .with(transform)
-                    .with(mesh.clone())
-                    .with(material.clone())
-                    .build()
-            })
-            .collect::<Vec<_>>()
-    }
-
-    fn generate_grid(world: &mut World, width: usize, height: usize) -> Vec<Entity> {
-        // TODO: render grid in a seperate render pass with lines instead of triangles
-
-        let mesh = {
-            let loader = world.read_resource::<Loader>();
-
-            let mesh_assets = world.read_resource::<AssetStorage<Mesh>>();
-            let mesh = loader.load_from_data::<Mesh, _>(
-                Shape::Plane(None).generate::<Vec<PosNormTex>>(None).into(),
-                (),
-                &mesh_assets,
-            );
-
-            mesh
-        };
-
-        let material = {
-            let loader = world.read_resource::<Loader>();
-
-            let material_assets = world.read_resource::<AssetStorage<Material>>();
-            let texture_assets = world.read_resource::<AssetStorage<Texture>>();
-            let albedo = loader.load_from_data(
-                TextureBuilder::new()
-                    .with_data(vec![Pixel::<_, _, pixel::Srgb>::from(Srgba::new(
-                        1.0, 0.0, 0.0, 0.0,
-                    ))])
-                    .into(),
-                (),
-                &texture_assets,
-            );
-
-            let mat_defaults = world.read_resource::<MaterialDefaults>();
-
-            loader.load_from_data::<Material, _>(
-                Material {
-                    albedo,
-                    ..mat_defaults.0.clone()
-                },
-                (),
-                &material_assets,
-            )
-        };
-
-        let mut grid = Vec::new();
-
-        grid.extend((0..width - 1).map(|x| {
-            let transform = {
-                let mut t = Transform::default();
-                t.set_scale(Vector3::new(0.1, height as f32 * 0.5, 1.0));
-                *t.translation_mut() = Vector3::new(x as f32 + 1.0, 0.01, height as f32 * 0.5);
-                t.prepend_rotation_x_axis(-std::f32::consts::FRAC_PI_2);
-                t
-            };
-
-            world
-                .create_entity()
-                .with(transform)
-                .with(mesh.clone())
-                .with(material.clone())
-                .build()
-        }));
-
-        grid.extend((0..height - 1).map(|y| {
-            let transform = {
-                let mut t = Transform::default();
-                t.set_scale(Vector3::new(width as f32 * 0.5, 0.1, 1.0));
-                *t.translation_mut() = Vector3::new(width as f32 * 0.5, 0.01, y as f32 + 1.0);
-                t.prepend_rotation_x_axis(-std::f32::consts::FRAC_PI_2);
-                t
-            };
-
-            world
-                .create_entity()
-                .with(transform)
-                .with(mesh.clone())
-                .with(material.clone())
-                .build()
-        }));
-
-        grid
-    }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Tile {
+    Grass,
 }

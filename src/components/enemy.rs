@@ -1,4 +1,4 @@
-use amethyst::ecs::prelude::*;
+use specs::prelude::*;
 
 #[derive(Debug)]
 pub struct Enemy {

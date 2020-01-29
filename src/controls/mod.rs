@@ -1,12 +1,8 @@
-//! Strongly typed controls
-
-use amethyst::input::BindingTypes;
+use amethyst_input::BindingTypes;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Debug, Display};
 
-pub mod camera;
-
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Bindings;
 impl BindingTypes for Bindings {
     type Axis = Axis;
@@ -14,15 +10,7 @@ impl BindingTypes for Bindings {
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Axis {
-    Camera(camera::AxisControls),
-}
-
-impl From<camera::AxisControls> for Axis {
-    fn from(ax: camera::AxisControls) -> Self {
-        Axis::Camera(ax)
-    }
-}
+pub enum Axis {}
 
 impl Display for Axis {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -30,5 +18,8 @@ impl Display for Axis {
     }
 }
 
-// TODO: make it an enum like `Axis`
-pub type Action = String;
+#[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+pub enum Action {
+    SpawnEnemy,
+    Build,
+}

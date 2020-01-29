@@ -1,13 +1,9 @@
-use amethyst::assets::PrefabData;
-use amethyst::core::math::Vector3;
-use amethyst::derive::PrefabData;
-use amethyst::ecs::prelude::*;
-use amethyst::error::Error;
+use amethyst_core::math::Vector3;
+use specs::prelude::*;
 use serde_derive::Deserialize;
 use std::f32;
 
-#[derive(Clone, Debug, Deserialize, PrefabData)]
-#[prefab(Component)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(default)]
 pub struct ArcBallControls {
     /// The point the camera is looking at.

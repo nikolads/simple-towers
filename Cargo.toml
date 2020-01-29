@@ -8,13 +8,13 @@ edition = "2018"
 opt-level = 2
 
 [dependencies]
-amethyst = { version = "0.13.0", features = ["nightly", "vulkan"] }
+amethyst_core = "0.8.1"
+amethyst_input = "0.9.1"
 derive_deref = "1.1.0"
 rand = "0.7.2"
+rltk = "0.6.0"
 serde = "1.0.104"
 serde_derive = "1.0.104"
-
-# TODO: move to dev-dependencies when docs for them can be built
-amethyst_test = { version = "0.4.0", features = ["nightly"] }
+specs = "0.15.1"
 
 [dev-dependencies]

@@ -1,5 +1,5 @@
-use amethyst::ecs::prelude::*;
-use amethyst::ecs::storage::StorageEntry;
+use specs::prelude::*;
+use specs::storage::StorageEntry;
 
 use crate::components::{MoveOrder, Waypoints};
 
