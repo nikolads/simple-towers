@@ -4,7 +4,7 @@ use specs::prelude::*;
 use specs::shrev::EventChannel;
 
 use crate::controls::{Action, Bindings};
-use crate::components::{Enemy, Pos, Vel, Waypoints};
+use crate::components::{Enemy, Speed, Pos, Vel, Waypoints};
 
 #[derive(Default)]
 pub struct SpawnSystem {
@@ -15,6 +15,7 @@ impl<'s> System<'s> for SpawnSystem {
     type SystemData = (
         WriteStorage<'s, Enemy>,
         WriteStorage<'s, Pos>,
+        WriteStorage<'s, Speed>,
         WriteStorage<'s, Vel>,
         WriteStorage<'s, Waypoints>,
         ReadExpect<'s, EventChannel<InputEvent<Bindings>>>,
@@ -25,6 +26,7 @@ impl<'s> System<'s> for SpawnSystem {
         let (
             mut enemies,
             mut positions,
+            mut speeds,
             mut velocities,
             mut waypoints,
             events,
@@ -37,7 +39,8 @@ impl<'s> System<'s> for SpawnSystem {
             .for_each(|_| {
                 entities
                     .build_entity()
-                    .with(Enemy { speed: 5.0 }, &mut enemies)
+                    .with(Enemy, &mut enemies)
+                    .with(Speed(5.0), &mut speeds)
                     .with(Pos(Vector2::new(15.0, 15.0)), &mut positions)
                     .with(Vel(Vector2::new(0.0, 0.0)), &mut velocities)
                     .with(

@@ -12,7 +12,8 @@ pub fn handle_input<'a>(ctx: &mut Rltk, data: HandleInputSystemData<'a>) {
     if let Some(key) = ctx.key {
         match key {
             VirtualKeyCode::N => event_channel.single_write(InputEvent::ActionPressed(Action::SpawnEnemy)),
-            VirtualKeyCode::B => event_channel.single_write(InputEvent::ActionPressed(Action::Build)),
+            VirtualKeyCode::T => event_channel.single_write(InputEvent::ActionPressed(Action::SelectTower)),
+            VirtualKeyCode::Y => event_channel.single_write(InputEvent::ActionPressed(Action::BuildTower)),
             _ => (),
         }
     }

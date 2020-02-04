@@ -1,24 +1,19 @@
 use amethyst_core::math::Vector2;
-use specs::prelude::*;
+use specs::{Component, VecStorage};
 use derive_deref::{Deref, DerefMut};
 
 /// Position component.
-#[derive(Clone, Debug, Deref, DerefMut)]
+#[derive(Clone, Component, Debug, Deref, DerefMut)]
+#[storage(VecStorage)]
 pub struct Pos(pub Vector2<f32>);
 
-impl Component for Pos {
-    type Storage = VecStorage<Self>;
-}
-
 /// Velocity component.
-#[derive(Clone, Debug, Deref, DerefMut)]
+#[derive(Clone, Component, Debug, Deref, DerefMut)]
+#[storage(VecStorage)]
 pub struct Vel(pub Vector2<f32>);
 
-impl Component for Vel {
-    type Storage = VecStorage<Self>;
-}
-
-#[derive(Debug, Clone)]
+#[derive(Clone, Component, Debug)]
+#[storage(VecStorage)]
 pub struct MoveOrder {
     goal: Option<Vector2<i32>>,
     segments: Vec<Vector2<i32>>,
@@ -43,10 +38,6 @@ impl MoveOrder {
             self.goal = Some(self.segments.remove(0));
         }
     }
-}
-
-impl Component for MoveOrder {
-    type Storage = VecStorage<Self>;
 }
 
 /// A queue of goals to move to.

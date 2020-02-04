@@ -1,10 +1,10 @@
-use specs::prelude::*;
+use derive_deref::{Deref, DerefMut};
+use specs::{Component, VecStorage};
 
-#[derive(Debug)]
-pub struct Enemy {
-    pub speed: f32,
-}
+#[derive(Debug, Component)]
+#[storage(VecStorage)]
+pub struct Enemy;
 
-impl Component for Enemy {
-    type Storage = VecStorage<Self>;
-}
+#[derive(Component, Debug, Deref, DerefMut)]
+#[storage(VecStorage)]
+pub struct Speed(pub f32);

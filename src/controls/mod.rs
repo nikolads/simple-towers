@@ -21,5 +21,6 @@ impl Display for Axis {
 #[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Action {
     SpawnEnemy,
-    Build,
+    SelectTower,
+    BuildTower,
 }

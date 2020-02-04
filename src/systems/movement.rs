@@ -3,13 +3,14 @@ use amethyst_core::timing::Time;
 use specs::prelude::*;
 use specs::storage::StorageEntry;
 
-use crate::components::{MoveOrder, Pos, Vel};
+use crate::components::{MoveOrder, Pos, Speed, Vel};
 
 #[derive(Default, Debug)]
 pub struct MovementSystem;
 
 impl<'a> System<'a> for MovementSystem {
     type SystemData = (
+        ReadStorage<'a, Speed>,
         WriteStorage<'a, MoveOrder>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -17,13 +18,15 @@ impl<'a> System<'a> for MovementSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut move_orders, mut positions, mut velocities, time) = data;
+        let (speeds, mut move_orders, mut positions, mut velocities, time) = data;
 
         for (pos, vel) in (&mut positions, &velocities).join() {
             pos.0 += vel.0 * time.delta_seconds();
         }
 
-        for (pos, vel, order) in (&positions, &mut velocities, move_orders.entries()).join() {
+        for (speed, pos, vel, order) in
+            (&speeds, &positions, &mut velocities, move_orders.entries()).join()
+        {
             match order {
                 StorageEntry::Occupied(mut entry) => {
                     let orientation = entry.get().goal().map(|goal| {
@@ -37,7 +40,8 @@ impl<'a> System<'a> for MovementSystem {
                         match entry.get().goal() {
                             Some(next) => {
                                 vel.0 = (Vector2::new(next.x as f32, next.y as f32) - pos.0)
-                                    .normalize();
+                                    .normalize()
+                                    * speed.0;
                             }
                             None => {
                                 entry.remove();

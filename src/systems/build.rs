@@ -1,10 +1,10 @@
-use amethyst_core::math::Vector2;
 use amethyst_input::InputEvent;
 use specs::prelude::*;
 use specs::shrev::EventChannel;
 
-use crate::components::{Pos, Selection, Tower};
+use crate::components::Tower;
 use crate::controls::{Action, Bindings};
+use crate::components::selection::{Selection, SelectionType};
 
 #[derive(Default)]
 pub struct BuildSystem {
@@ -13,31 +13,37 @@ pub struct BuildSystem {
 
 impl<'s> System<'s> for BuildSystem {
     type SystemData = (
-        ReadStorage<'s, Selection>,
-        WriteStorage<'s, Pos>,
         WriteStorage<'s, Tower>,
         ReadExpect<'s, EventChannel<InputEvent<Bindings>>>,
+        ReadExpect<'s, Option<Selection>>,
+        WriteExpect<'s, SelectionType>,
         Entities<'s>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (selection, mut positions, mut towers, events, entities) = data;
+        let (mut towers, events, selection, mut selection_type, entities) = data;
 
         events
             .read(self.event_reader.as_mut().unwrap())
-            .filter(|evt| **evt == InputEvent::ActionPressed(Action::Build))
-            .for_each(|_| {
-                if let Some(sel) = selection.join().next() {
-                    entities
-                        .build_entity()
-                        .with(
-                            Pos(Vector2::new(sel.x as f32, sel.y as f32)),
-                            &mut positions,
-                        )
-                        .with(Tower, &mut towers)
-                        .build();
+            .for_each(|evt| match evt {
+                InputEvent::ActionPressed(Action::SelectTower) => {
+                    *selection_type = SelectionType::PlaceBuilding;
+                },
+                InputEvent::ActionPressed(Action::BuildTower) => {
+                    match &*selection {
+                        Some(Selection::PlaceBuilding(rect)) => {
+                            entities.build_entity()
+                                .with(Tower { position: rect.clone() }, &mut towers)
+                                .build();
+
+                            *selection_type = SelectionType::Hover;
+                        },
+                        Some(_) => panic!("selection is not `PlaceBuilding`"),
+                        None => (),
+                    }
                 }
-            });
+                _ => (),
+            })
     }
 
     fn setup(&mut self, res: &mut World) {

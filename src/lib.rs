@@ -11,8 +11,10 @@ pub mod controls;
 pub mod engine;
 pub mod systems;
 pub mod terrain;
+pub mod utils;
 
 use self::components::MousePos;
+use self::components::selection::{Selection, SelectionType};
 use self::controls::Bindings;
 use self::systems::{BuildSystem, MovementSystem, SelectionSystem, SpawnSystem, WaypointSystem};
 use self::terrain::Map;
@@ -41,10 +43,12 @@ impl State {
         game_state
             .world
             .insert(EventChannel::<InputEvent<Bindings>>::new());
-        game_state.world.insert(Map::grass(30, 30));
+        game_state.world.insert(Map::grass(40, 40));
         game_state.world.insert(MousePos(None));
         game_state.world.insert(Stopwatch::default());
         game_state.world.insert(Time::default());
+        game_state.world.insert::<Option<Selection>>(None);
+        game_state.world.insert(SelectionType::Hover);
 
         game_state.setup_systes();
 
