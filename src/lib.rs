@@ -2,7 +2,7 @@ use amethyst_core::math::Vector2;
 use amethyst_core::timing::{Stopwatch, Time};
 use amethyst_input::InputEvent;
 use rltk::{Console as _, GameState, Rltk};
-use specs::shred::RunNow as _;
+use specs::shred::{Dispatcher, DispatcherBuilder};
 use specs::shrev::EventChannel;
 use specs::{World, WorldExt as _};
 
@@ -13,8 +13,8 @@ pub mod systems;
 pub mod terrain;
 pub mod utils;
 
-use self::components::MousePos;
 use self::components::selection::{Selection, SelectionType};
+use self::components::MousePos;
 use self::controls::Bindings;
 use self::systems::{BuildSystem, MovementSystem, SelectionSystem, SpawnSystem, WaypointSystem};
 use self::terrain::Map;
@@ -22,46 +22,35 @@ use self::terrain::Map;
 pub struct State {
     world: World,
 
-    build_system: BuildSystem,
-    movement_system: MovementSystem,
-    select_system: SelectionSystem,
-    spawn_system: SpawnSystem,
-    waypoint_system: WaypointSystem,
+    // lifetimes are those of regular and thread local systems respectively
+    dispatcher: Dispatcher<'static, 'static>,
 }
 
 impl State {
     pub fn new() -> Self {
-        let mut game_state = State {
-            world: World::new(),
-            build_system: BuildSystem::default(),
-            movement_system: MovementSystem::default(),
-            select_system: SelectionSystem::default(),
-            spawn_system: SpawnSystem::default(),
-            waypoint_system: WaypointSystem::default(),
-        };
+        let mut world = World::new();
 
-        game_state
-            .world
-            .insert(EventChannel::<InputEvent<Bindings>>::new());
-        game_state.world.insert(Map::grass(40, 40));
-        game_state.world.insert(MousePos(None));
-        game_state.world.insert(Stopwatch::default());
-        game_state.world.insert(Time::default());
-        game_state.world.insert::<Option<Selection>>(None);
-        game_state.world.insert(SelectionType::Hover);
+        world.insert(EventChannel::<InputEvent<Bindings>>::new());
+        world.insert(Map::grass(40, 40));
+        world.insert(MousePos(None));
+        world.insert::<Option<Selection>>(None);
+        world.insert(SelectionType::Hover);
+        world.insert(Stopwatch::default());
+        world.insert(Time::default());
 
-        game_state.setup_systes();
+        let dispatcher = DispatcherBuilder::new()
+            .with(BuildSystem::default(), "", &[])
+            .with(MovementSystem::default(), "", &[])
+            .with(SelectionSystem::default(), "", &[])
+            .with(SpawnSystem::default(), "", &[])
+            .with(WaypointSystem::default(), "", &[])
+            .build();
 
-        game_state
+        State { world, dispatcher }
     }
 
     fn run_systems(&mut self) {
-        self.build_system.run_now(&self.world);
-        self.movement_system.run_now(&self.world);
-        self.select_system.run_now(&self.world);
-        self.spawn_system.run_now(&self.world);
-        self.waypoint_system.run_now(&self.world);
-
+        self.dispatcher.dispatch(&self.world);
         self.world.maintain();
     }
 
@@ -82,14 +71,9 @@ impl State {
         time.set_delta_time(elapsed);
     }
 
-    fn setup_systes(&mut self) {
+    pub fn setup_systems(&mut self) {
         self.world.write_resource::<Stopwatch>().start();
-
-        self.build_system.setup(&mut self.world);
-        self.movement_system.setup(&mut self.world);
-        self.select_system.setup(&mut self.world);
-        self.spawn_system.setup(&mut self.world);
-        self.waypoint_system.setup(&mut self.world);
+        self.dispatcher.setup(&mut self.world);
     }
 }
 
