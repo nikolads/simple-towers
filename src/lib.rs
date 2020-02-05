@@ -1,7 +1,7 @@
 use amethyst_core::math::Vector2;
 use amethyst_core::timing::{Stopwatch, Time};
 use amethyst_input::InputEvent;
-use rltk::{Console as _, GameState, Rltk};
+use rltk::{Console as _, DrawBatch, GameState, Rltk};
 use specs::shred::{Dispatcher, DispatcherBuilder};
 use specs::shrev::EventChannel;
 use specs::{World, WorldExt as _};
@@ -89,9 +89,19 @@ impl GameState for State {
 
         self.run_systems();
 
-        renderer::draw_map(ctx, &*self.world.fetch::<Map>());
-        renderer::draw_selections(ctx, self.world.system_data());
-        renderer::draw_enemies(ctx, self.world.system_data());
-        renderer::draw_buildings(ctx, self.world.system_data());
+        let mut batch = DrawBatch::new();
+        batch.target(0);
+        batch.cls();
+        batch.target(1);
+        batch.cls();
+
+        renderer::draw_map(&mut batch, &*self.world.fetch::<Map>());
+        renderer::draw_selections(&mut batch, self.world.system_data());
+        renderer::draw_enemies(&mut batch, self.world.system_data());
+        renderer::draw_buildings(&mut batch, self.world.system_data());
+
+        batch.submit(0);
+
+        rltk::render_draw_buffer(ctx);
     }
 }

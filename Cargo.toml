@@ -11,8 +11,9 @@ opt-level = 2
 amethyst_core = "0.8.1"
 amethyst_input = "0.9.1"
 derive_deref = "1.1.0"
+object-pool = "0.4.4"
 rand = "0.7.2"
-rltk = "0.6.0"
+rltk = "0.6.2"
 serde = "1.0.104"
 serde_derive = "1.0.104"
 specs = { version = "0.15.1", features = ["nightly"] }
