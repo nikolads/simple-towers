@@ -9,15 +9,14 @@ use specs::{World, WorldExt as _};
 pub mod components;
 pub mod controls;
 pub mod engine;
+pub mod map;
 pub mod systems;
-pub mod terrain;
 pub mod utils;
 
-use self::components::selection::{Selection, SelectionType};
-use self::components::MousePos;
-use self::controls::Bindings;
-use self::systems::{BuildSystem, MovementSystem, SelectionSystem, SpawnSystem, WaypointSystem};
-use self::terrain::Map;
+use self::components::SelectionType;
+use self::controls::{Bindings, MousePos};
+use self::map::Map;
+use self::systems::{BuildSystem, BuildingPlacementSystem, MovementSystem, SpawnSystem, WaypointSystem};
 
 pub struct State {
     world: World,
@@ -33,15 +32,14 @@ impl State {
         world.insert(EventChannel::<InputEvent<Bindings>>::new());
         world.insert(Map::grass(40, 40));
         world.insert(MousePos(None));
-        world.insert::<Option<Selection>>(None);
         world.insert(SelectionType::Hover);
         world.insert(Stopwatch::default());
         world.insert(Time::default());
 
         let dispatcher = DispatcherBuilder::new()
             .with(BuildSystem::default(), "", &[])
+            .with(BuildingPlacementSystem::default(), "", &[])
             .with(MovementSystem::default(), "", &[])
-            .with(SelectionSystem::default(), "", &[])
             .with(SpawnSystem::default(), "", &[])
             .with(WaypointSystem::default(), "", &[])
             .build();
@@ -95,10 +93,11 @@ impl GameState for State {
         batch.target(1);
         batch.cls();
 
-        renderer::draw_map(&mut batch, &*self.world.fetch::<Map>());
+        renderer::draw_map(&mut batch, self.world.system_data());
         renderer::draw_selections(&mut batch, self.world.system_data());
         renderer::draw_enemies(&mut batch, self.world.system_data());
         renderer::draw_buildings(&mut batch, self.world.system_data());
+        renderer::draw_ui(&mut batch, self.world.system_data());
 
         batch.submit(0);
 

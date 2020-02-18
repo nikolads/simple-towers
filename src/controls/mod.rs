@@ -1,6 +1,9 @@
+use amethyst_core::math::Vector2;
 use amethyst_input::BindingTypes;
-use serde::{Deserialize, Serialize};
+use derive_deref::{Deref, DerefMut};
 use std::fmt::{self, Debug, Display};
+
+use crate::components::TowerType;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Bindings;
@@ -9,7 +12,7 @@ impl BindingTypes for Bindings {
     type Action = Action;
 }
 
-#[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Axis {}
 
 impl Display for Axis {
@@ -18,9 +21,12 @@ impl Display for Axis {
     }
 }
 
-#[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum Action {
     SpawnEnemy,
-    SelectTower,
+    SelectTower(TowerType),
     BuildTower,
 }
+
+#[derive(Clone, Debug, Deref, DerefMut)]
+pub struct MousePos(pub Option<Vector2<i32>>);

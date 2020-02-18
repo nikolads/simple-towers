@@ -1,20 +1,10 @@
-use amethyst_core::math::Vector2;
+use euclid::{Point2D, Rect};
 use std::iter;
 
-#[derive(Clone, Debug)]
-pub struct Rect {
-    pub left: usize,
-    pub top: usize,
-    pub width: usize,
-    pub height: usize,
-}
+pub fn rect_points<U>(rect: Rect<usize, U>) -> impl Iterator<Item = Point2D<usize, U>> {
+    let xs = rect.x_range();
+    let ys = rect.y_range();
 
-impl Rect {
-    pub fn tiles<'a>(&'a self) -> impl Iterator<Item = Vector2<usize>> + 'a {
-        let xs = self.left..(self.left + self.width);
-        let ys = self.top..(self.top + self.height);
-
-        xs.flat_map(move |x| iter::repeat(x).zip(ys.clone()))
-            .map(move |(x, y)| Vector2::new(x, y))
-    }
+    xs.flat_map(move |x| iter::repeat(x).zip(ys.clone()))
+        .map(|(x, y)| Point2D::new(x, y))
 }
